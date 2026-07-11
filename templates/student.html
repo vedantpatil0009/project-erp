@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | EduSphere ERP</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css')}}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+    <div class="logo">
+        <h2>EduSphere</h2>
+    </div>
+
+    <ul>
+
+        <li class="active">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-user-check"></i>
+            <span>Attendance</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-book"></i>
+            <span>Study Material</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Timetable</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-calendar-week"></i>
+            <span>Academic Calendar</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Assignments</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Results</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-wallet"></i>
+            <span>Fees</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-book-open-reader"></i>
+            <span>Library</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-bell"></i>
+            <span>Notices</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </li>
+
+    </ul>
+
+</div>
+
+<!-- Main Content -->
+
+<div class="main">
+
+    <!-- Top Bar -->
+
+    <div class="topbar">
+
+        <h2>Student Dashboard</h2>
+
+        <div class="profile">
+
+            <img src="https://i.pravatar.cc/150?img=12">
+
+            <div>
+
+                <h4>Vedant Patil</h4>
+
+                <p>Computer Engineering</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <i class="fa-solid fa-user-check"></i>
+
+            <h3>Attendance</h3>
+
+            <h1>92%</h1>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-wallet"></i>
+
+            <h3>Fees</h3>
+
+            <h1>Paid</h1>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-square-poll-vertical"></i>
+
+            <h3>CGPA</h3>
+
+            <h1>8.75</h1>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-calendar-week"></i>
+
+            <h3>Upcoming Events</h3>
+
+             <h1>6</h1>
+
+        </div>
+
+    </div>
+
+    <!-- Quick Info -->
+
+    <div class="row">
+
+        <div class="box">
+
+            <h3>Today's Classes</h3>
+
+            <ul>
+
+                <li>Data Structures</li>
+
+                <li>Operating System</li>
+
+                <li>Python Programming</li>
+
+                <li>Web Development</li>
+
+            </ul>
+
+        </div>
+
+        <div class="box">
+
+            <h3>Upcoming Assignments</h3>
+
+            <ul>
+
+                <li>Python Project - 10 July</li>
+
+                <li>DBMS Practical - 12 July</li>
+
+                <li>Mini Project Report - 15 July</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+        <!-- Timetable -->
+
+    <div class="box full">
+
+        <h3>Today's Timetable</h3>
+
+        <table>
+
+            <tr>
+                <th>Time</th>
+                <th>Subject</th>
+                <th>Faculty</th>
+            </tr>
+
+            <tr>
+                <td>09:00 - 10:00</td>
+                <td>Data Structures</td>
+                <td>Mr. Sharma</td>
+            </tr>
+
+            <tr>
+                <td>10:15 - 11:15</td>
+                <td>Operating System</td>
+                <td>Mrs. Patil</td>
+            </tr>
+
+            <tr>
+                <td>11:30 - 12:30</td>
+                <td>Python Programming</td>
+                <td>Mr. Kulkarni</td>
+            </tr>
+
+            <tr>
+                <td>01:30 - 02:30</td>
+                <td>Web Development</td>
+                <td>Mrs. Deshmukh</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- Academic Calendar -->
+
+<div class="box full">
+
+    <h3>Academic Calendar</h3>
+
+    <table>
+
+        <tr>
+            <th>Date</th>
+            <th>Event</th>
+        </tr>
+
+        <tr>
+            <td>10 July</td>
+            <td>Semester Begins</td>
+        </tr>
+
+        <tr>
+            <td>20 July</td>
+            <td>Internal Practical Exam</td>
+        </tr>
+
+        <tr>
+            <td>5 August</td>
+            <td>Unit Test 1</td>
+        </tr>
+
+        <tr>
+            <td>15 August</td>
+            <td>Independence Day Holiday</td>
+        </tr>
+
+        <tr>
+            <td>10 September</td>
+            <td>Project Submission</td>
+        </tr>
+
+        <tr>
+            <td>5 October</td>
+            <td>Semester Examination</td>
+        </tr>
+
+    </table>
+
+</div>
+
+    <!-- Performance & Attendance -->
+
+    <div class="row">
+
+        <div class="box">
+
+            <h3>Performance</h3>
+
+            <div class="graph">
+
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:85%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:95%"></div>
+                <div class="bar" style="height:80%"></div>
+
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <h3>Attendance Summary</h3>
+
+            <table>
+
+                <tr>
+                    <th>Subject</th>
+                    <th>%</th>
+                </tr>
+
+                <tr>
+                    <td>Python</td>
+                    <td>95%</td>
+                </tr>
+
+                <tr>
+                    <td>DBMS</td>
+                    <td>90%</td>
+                </tr>
+
+                <tr>
+                    <td>OS</td>
+                    <td>91%</td>
+                </tr>
+
+                <tr>
+                    <td>DS</td>
+                    <td>94%</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Notices -->
+
+    <div class="box full">
+
+        <h3>Latest Notices</h3>
+
+        <ul>
+
+            <li>📢 Internal Practical Exam starts from 20 July.</li>
+
+            <li>📢 Library will remain closed on Sunday.</li>
+
+            <li>📢 Submit Mini Project before 18 July.</li>
+
+            <li>📢 College Hackathon registrations are now open.</li>
+
+        </ul>
+
+    </div>
+
+    <!-- Study Material -->
+
+    <div class="box full">
+
+        <h3>Recent Study Material</h3>
+
+        <table>
+
+            <tr>
+                <th>Subject</th>
+                <th>File</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>Python</td>
+                <td>Python_Notes.pdf</td>
+                <td><button>Download</button></td>
+            </tr>
+
+            <tr>
+                <td>DBMS</td>
+                <td>Normalization.pdf</td>
+                <td><button>Download</button></td>
+            </tr>
+
+            <tr>
+                <td>Operating System</td>
+                <td>OS_Unit3.pdf</td>
+                <td><button>Download</button></td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- Footer -->
+
+    <footer>
+
+        <p>
+
+            © 2026 EduSphere ERP | Student Dashboard
+
+        </p>
+
+    </footer>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/student.js')}}"></script>
+
+</body>
+</html>

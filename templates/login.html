@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSphere ERP | Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css')}}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Left Side -->
+    <div class="left-panel">
+
+        <h1>EduSphere ERP</h1>
+
+        <p>
+            Welcome to the School Management System.
+            Select your role and login to continue.
+        </p>
+
+        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900"
+        alt="Students">
+
+    </div>
+
+    <!-- Right Side -->
+    <div class="right-panel">
+
+        <h2>Login</h2>
+
+        <div class="roles">
+
+            <div class="role active" onclick="selectRole(this,'Student Login')">
+                <i class="fa-solid fa-user-graduate"></i>
+                <span>Student</span>
+            </div>
+
+            <div class="role" onclick="selectRole(this,'Teacher Login')">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span>Teacher</span>
+            </div>
+
+            <div class="role" onclick="selectRole(this,'Parent Login')">
+                <i class="fa-solid fa-people-roof"></i>
+                <span>Parent</span>
+            </div>
+
+            <div class="role" onclick="selectRole(this,'Admin Login')">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Admin</span>
+            </div>
+
+        </div>
+
+        <h3 id="loginTitle">Student Login</h3>
+
+        <form action="/login" method="POST">
+            
+
+            <input
+            type="email"
+            placeholder="Email Address" 
+            name="email"
+            required>
+
+            <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            required>
+
+            <div class="options">
+
+                <label>
+                    <input type="checkbox">
+                    Remember Me
+                </label>
+
+                <a href="#">Forgot Password?</a>
+
+            </div>
+
+            <button type="submit">
+                Login
+            </button>
+
+            <div class="extra-links">
+
+                <p>Don't have an account?</p>
+
+                <a href="/register" class="register-btn">Register Here</a>
+
+            </div>
+
+        </form>
+
+        <p class="back">
+            <a href="/landing">
+                ← Back to Home
+            </a>
+        </p>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/login.js')}}"></script>
+
+</body>
+</html>

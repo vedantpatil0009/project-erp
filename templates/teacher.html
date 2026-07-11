@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard | EduSphere ERP</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css')}}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+
+    <div class="logo">
+        <h2>EduSphere</h2>
+    </div>
+
+    <ul>
+
+        <li class="active">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-users"></i>
+            <span>Students</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-user-check"></i>
+            <span>Attendance</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-book"></i>
+            <span>Study Material</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Assignments</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Results</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Timetable</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-calendar-week"></i>
+            <span>Academic Calendar</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Notices</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-envelope"></i>
+            <span>Messages</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+        </li>
+
+        <li>
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </li>
+
+    </ul>
+
+</div>
+
+<!-- Main -->
+
+<div class="main">
+
+    <div class="topbar">
+
+        <h2>Teacher Dashboard</h2>
+
+        <div class="profile">
+
+            <img src="https://i.pravatar.cc/150?img=32">
+
+            <div>
+                <h4>Mrs. Patil</h4>
+                <p>Computer Department</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="cards">
+
+        <div class="card">
+            <i class="fa-solid fa-users"></i>
+            <h3>Total Students</h3>
+            <h1>128</h1>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-calendar-check"></i>
+            <h3>Today's Classes</h3>
+            <h1>5</h1>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-file-circle-check"></i>
+            <h3>Assignments</h3>
+            <h1>18</h1>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-user-check"></i>
+            <h3>Attendance</h3>
+            <h1>96%</h1>
+        </div>
+
+    </div>
+
+    <!-- Row -->
+
+    <div class="row">
+
+        <div class="box">
+
+            <h3>Today's Schedule</h3>
+
+            <ul>
+
+                <li>09:00 - CO3I</li>
+
+                <li>10:15 - CO4I</li>
+
+                <li>11:30 - CO5I</li>
+
+                <li>01:30 - Practical Batch A</li>
+
+                <li>03:00 - Practical Batch B</li>
+
+            </ul>
+
+        </div>
+
+        <!-- Academic Calendar -->
+
+<div class="box full">
+
+    <h3>Academic Calendar</h3>
+
+    <table>
+
+        <tr>
+            <th>Date</th>
+            <th>Event</th>
+        </tr>
+
+        <tr>
+            <td>10 July</td>
+            <td>Semester Begins</td>
+        </tr>
+
+        <tr>
+            <td>15 July</td>
+            <td>Faculty Meeting</td>
+        </tr>
+
+        <tr>
+            <td>20 July</td>
+            <td>Internal Practical Examination</td>
+        </tr>
+
+        <tr>
+            <td>05 August</td>
+            <td>Unit Test 1</td>
+        </tr>
+
+        <tr>
+            <td>15 August</td>
+            <td>Independence Day Holiday</td>
+        </tr>
+
+        <tr>
+            <td>10 September</td>
+            <td>Project Submission Deadline</td>
+        </tr>
+
+        <tr>
+            <td>05 October</td>
+            <td>Semester Examination</td>
+        </tr>
+
+    </table>
+
+</div>
+
+        <div class="box">
+
+            <h3>Quick Actions</h3>
+
+            <button>Mark Attendance</button>
+
+            <button>Upload Assignment</button>
+
+            <button>Upload Notes</button>
+
+            <button>Enter Marks</button>
+
+        </div>
+
+    </div>
+
+        <!-- Student List -->
+
+    <div class="box full">
+
+        <h3>Student List</h3>
+
+        <table>
+
+            <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Attendance</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>101</td>
+                <td>Vedant Patil</td>
+                <td>92%</td>
+                <td>Present</td>
+            </tr>
+
+            <tr>
+                <td>102</td>
+                <td>Rahul Sharma</td>
+                <td>89%</td>
+                <td>Present</td>
+            </tr>
+
+            <tr>
+                <td>103</td>
+                <td>Aryan Joshi</td>
+                <td>96%</td>
+                <td>Absent</td>
+            </tr>
+
+            <tr>
+                <td>104</td>
+                <td>Om Kulkarni</td>
+                <td>91%</td>
+                <td>Present</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- Attendance & Performance -->
+
+    <div class="row">
+
+        <div class="box">
+
+            <h3>Attendance Overview</h3>
+
+            <div class="graph">
+
+                <div class="bar" style="height:85%"></div>
+                <div class="bar" style="height:75%"></div>
+                <div class="bar" style="height:95%"></div>
+                <div class="bar" style="height:65%"></div>
+                <div class="bar" style="height:90%"></div>
+
+            </div>
+
+        </div>
+
+        <div class="box">
+
+            <h3>Pending Assignments</h3>
+
+            <ul>
+
+                <li>Python Mini Project - 12 Pending</li>
+
+                <li>DBMS Assignment - 8 Pending</li>
+
+                <li>Web Development - 5 Pending</li>
+
+                <li>Operating System - 14 Pending</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+    <!-- Notices -->
+
+    <div class="box full">
+
+        <h3>Recent Notices</h3>
+
+        <ul>
+
+            <li>📢 Faculty Meeting on Friday.</li>
+
+            <li>📢 Internal Assessment starts next week.</li>
+
+            <li>📢 Upload attendance before 5 PM.</li>
+
+            <li>📢 Semester practical timetable published.</li>
+
+        </ul>
+
+    </div>
+
+    <!-- Assignment Upload -->
+
+    <div class="box full">
+
+        <h3>Upload Assignment</h3>
+
+        <form>
+
+            <input type="text" placeholder="Assignment Title">
+
+            <textarea placeholder="Assignment Description"></textarea>
+
+            <input type="date">
+
+            <button type="submit">
+
+                Upload Assignment
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- Footer -->
+
+    <footer>
+
+        <p>
+
+            © 2026 EduSphere ERP | Teacher Dashboard
+
+        </p>
+
+    </footer>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/teacher.js')}}"></script>
+
+</body>
+</html>
