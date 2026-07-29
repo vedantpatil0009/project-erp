@@ -6,7 +6,7 @@
 }
 
 body{
-    background:linear-gradient(135deg,#2563eb,#1e3a8a);
+    background:#282A35;
     min-height:100vh;
     display:flex;
     justify-content:center;
@@ -28,7 +28,7 @@ body{
 
 .left-panel{
     width:50%;
-    background:linear-gradient(135deg,#2563eb,#1e40af);
+    background:#9D4EDD;
     color:white;
     padding:50px;
     display:flex;

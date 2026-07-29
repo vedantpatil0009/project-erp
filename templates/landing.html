@@ -24,17 +24,9 @@
 <nav>
 
 <div class="logo">
-    EduSphere ERP
+   <img src="{{url_for('static',filename='images/ERP.png')}}" alt="ERP">
 </div>
 
-<ul class="nav-links">
-
-<li><a href="#">Home</a></li>
-<li><a href="#features">Features</a></li>
-<li><a href="#about">About</a></li>
-<li><a href="#contact">Contact</a></li>
-
-</ul>
 
 <div class="buttons">
 
@@ -56,7 +48,9 @@
 
 <div class="hero-text">
 
-<h1>Manage Your School Smartly</h1>
+<h1>Manage, Teach, Learn..</h1>
+
+<h2>All at one place!</h2>
 
 <p>
 An all-in-one ERP platform for Students,
@@ -65,21 +59,55 @@ Attendance, Fees, Results, Timetable,
 Assignments and much more.
 </p>
 
-<div class="hero-buttons">
-
-<a href="/login" class="primary-btn">Get Started</a>
-
-<a href="#features" class="secondary-btn">Explore</a>
-
 </div>
 
-</div>
+<fieldset class="slideshow">
 
-<div class="hero-image">
+    <div class="slide-container">
 
-<img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=900" alt="School">
+        <div class="slides">
 
-</div>
+            <div class="slide active">
+                <div class="icon">🎓</div>
+                <h2>Student Management</h2>
+                <p>Store and manage complete student records with ease.</p>
+            </div>
+
+            <div class="slide">
+                <div class="icon">📅</div>
+                <h2>Attendance Tracking</h2>
+                <p>Take attendance digitally and generate reports instantly.</p>
+            </div>
+
+            <div class="slide">
+                <div class="icon">💳</div>
+                <h2>Fee Management</h2>
+                <p>Track payments, pending fees and download receipts.</p>
+            </div>
+
+            <div class="slide">
+                <div class="icon">📊</div>
+                <h2>Results & Reports</h2>
+                <p>Publish exam results and analyze student performance.</p>
+            </div>
+
+        </div>
+
+        <div class="slider-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+
+    </div>
+
+    <div class="hero-buttons">
+        <a href="/login" class="primary-btn">Get Started</a>
+        <a href="#features" class="secondary-btn">Explore</a>
+    </div>
+
+</fieldset>
 
 </section>
 
@@ -153,12 +181,12 @@ through one powerful platform.
 <section class="stats">
 
 <div class="stat">
-<h2>5000+</h2>
+<h2>--</h2>
 <p>Students</p>
 </div>
 
 <div class="stat">
-<h2>300+</h2>
+<h2>--</h2>
 <p>Teachers</p>
 </div>
 

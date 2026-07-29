@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect
+from flask_bcrypt import Bcrypt
+from flask import Flask, render_template, request, redirect, url_for, flash
 from config import Config
 from models import db
-from models.user import User
+from models.user import User 
 from models.student import Student
 from models.teacher import Teacher
 
@@ -10,11 +11,8 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
+bcrypt = Bcrypt(app)
 
-
-# -----------------------
-# Routes
-# -----------------------
 
 @app.route("/")
 def landing():
@@ -25,39 +23,64 @@ def landing():
 def login():
 
     if request.method == "POST":
+        print("Register button clicked!")
         email = request.form.get('email')
         password = request.form.get('password')
 
         print("Email:", email)
         print("Password:", password)
 
-        user = User.query.filter_by(
-            email=email,
-            password=password
-        ).first()
+    user = User.query.filter_by(email=email).first()
 
-        print(user)
+    if user and bcrypt.check_password_hash(user.password, password):
 
-        if user:
+        if user.role == "Student":
+            return redirect(url_for("student"))
 
-            if user.role == "admin":
-                return redirect('/admin')
+        elif user.role == "Teacher":
+            return redirect(url_for("teacher"))
 
-            elif user.role == "teacher":
-                return redirect('/teacher')
+        elif user.role == "Parent":
+            return redirect(url_for("parent"))
 
-            elif user.role == "student":
-                return redirect('/student')
+        elif user.role == "Admin":
+            return redirect(url_for("admin"))
 
-            elif user.role == "parent":
-                return redirect('/parent')
+    flash("Invalid email or password")
+    return redirect(url_for("login"))
 
-        return "Invalid Login"
-
-    return render_template("login.html")
-
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+
+    if request.method == "POST":
+
+        full_name = request.form.get("full_name")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        role = request.form.get("role")
+
+        print("Name:", full_name)
+        print("Email:", email)
+        print("Password:", password)
+        print("Role:", role)
+
+        existing_user = User.query.filter_by(email=email).first()
+
+        print("Existing User:", existing_user)
+
+        if existing_user:
+            flash("Email already registered!")
+            print("Email already exists!")
+            return redirect(url_for("register"))
+
+        print("Form Data:", request.form)
+        print("Password:", request.form.get("password"))
+        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+
+
+        flash("Registration Successful!")
+        return redirect(url_for("login"))
+
     return render_template("register.html")
 
 
@@ -81,9 +104,7 @@ def admin():
     return render_template("admin.html")
 
 
-# -----------------------
-# Create Database
-# -----------------------
+
 
 with app.app_context():
 

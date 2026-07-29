@@ -7,8 +7,6 @@ const form = document.querySelector("form");
 
 form.addEventListener("submit", function(event){
 
-    event.preventDefault();
-
     const password = document.querySelectorAll("input[type='password']")[0].value;
 
     const confirmPassword = document.querySelectorAll("input[type='password']")[1].value;
@@ -17,12 +15,11 @@ form.addEventListener("submit", function(event){
 
         alert("Passwords do not match!");
 
-        return;
+        event.preventDefault();
+
+        
 
     }
 
-    alert("Registration Successful!");
-
-    form.reset();
 
 });

@@ -6,7 +6,7 @@
 }
 
 body{
-    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    background:#282A35;
     display:flex;
     justify-content:center;
     align-items:center;
@@ -31,7 +31,7 @@ body{
 
 .register-box h1{
     text-align:center;
-    color:#2563eb;
+    color:#9D4EDD;
     margin-bottom:10px;
 }
 
@@ -51,7 +51,7 @@ body{
     left:15px;
     top:50%;
     transform:translateY(-50%);
-    color:#2563eb;
+    color:#9D4EDD;
     font-size:16px;
 }
 
@@ -69,14 +69,14 @@ body{
 
 .input-box input:focus,
 .input-box select:focus{
-    border-color:#2563eb;
+    border-color:#9D4EDD;
     box-shadow:0 0 5px rgba(37,99,235,.3);
 }
 
 button{
     width:100%;
     padding:13px;
-    background:#2563eb;
+    background:#9D4EDD;
     color:white;
     border:none;
     border-radius:8px;
@@ -87,7 +87,7 @@ button{
 }
 
 button:hover{
-    background:#1d4ed8;
+    background:#9153c3;
 }
 
 .login-link{
