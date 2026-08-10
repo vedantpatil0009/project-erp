@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section_title }} | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo"><h2>EduSphere</h2></div>
+    <ul>
+        <li class="{% if active_page == 'dashboard' %}active{% endif %}" onclick="window.location.href='{{ url_for('student') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+        <li class="{% if active_page == 'attendance' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+        <li class="{% if active_page == 'materials' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Material</span></li>
+        <li class="{% if active_page == 'timetable' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_timetable') }}'"><i class="fa-solid fa-calendar-days"></i><span>Timetable</span></li>
+        <li class="{% if active_page == 'calendar' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_calendar') }}'"><i class="fa-solid fa-calendar-week"></i><span>Academic Calendar</span></li>
+        <li class="{% if active_page == 'assignments' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
+        <li class="{% if active_page == 'results' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_results') }}'"><i class="fa-solid fa-square-poll-vertical"></i><span>Results</span></li>
+        <li class="{% if active_page == 'fees' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_fees') }}'"><i class="fa-solid fa-wallet"></i><span>Fees</span></li>
+        <li class="{% if active_page == 'library' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_library') }}'"><i class="fa-solid fa-book-open-reader"></i><span>Library</span></li>
+        <li class="{% if active_page == 'notices' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+        <li class="{% if active_page == 'settings' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_settings') }}'"><i class="fa-solid fa-gear"></i><span>Settings</span></li>
+        <li class="sidebar-profile {% if active_page == 'profile' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_profile') }}'">
+            <i class="fa-solid fa-circle-user"></i>
+            <div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.enrollment_no or 'Enrollment unavailable' }}</small></div>
+        </li>
+        <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+    </ul>
+</div>
+
+<main class="main">
+    <div class="topbar"><h2>{{ section_title }}</h2></div>
+    <section class="profile-card">
+        <div class="profile-heading">
+            <i class="fa-solid {{ section_icon }}"></i>
+            <div><h3>{{ section_title }}</h3><p>Student Services</p></div>
+        </div>
+        <div class="empty-state">
+            <i class="fa-solid {{ section_icon }}"></i>
+            <p>{{ empty_message }}</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -54,6 +54,29 @@ body{
     width:20px;
 }
 
+.sidebar-profile{
+    margin-top:10px;
+    border-top:1px solid rgba(255,255,255,.2);
+}
+
+.sidebar-profile-details{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+}
+
+.sidebar-profile-details strong,
+.sidebar-profile-details small{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.sidebar-profile-details small{
+    color:rgba(255,255,255,.75);
+    font-size:12px;
+}
+
 /* Main */
 
 .main{
@@ -282,4 +305,99 @@ table{
     font-size:13px;
 }
 
+}
+
+/* Student profile */
+
+.profile-card{
+    background:white;
+    border-radius:15px;
+    padding:30px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+    max-width:850px;
+}
+
+.profile-heading{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.profile-heading i{
+    color:#2563eb;
+    font-size:48px;
+}
+
+.profile-details{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.profile-detail{
+    background:#f7f9ff;
+    border-radius:8px;
+    padding:15px;
+}
+
+.profile-detail span,
+.profile-form label{
+    display:block;
+    color:#666;
+    font-size:13px;
+    margin-bottom:5px;
+}
+
+.profile-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+}
+
+.profile-form .full-width{
+    grid-column:1 / -1;
+}
+
+.profile-form input{
+    width:100%;
+    border:1px solid #d7deed;
+    border-radius:6px;
+    padding:11px;
+    font:inherit;
+}
+
+.profile-form input[readonly]{
+    background:#eef2ff;
+    color:#666;
+}
+
+.profile-actions{
+    display:flex;
+    gap:12px;
+    margin-top:25px;
+}
+
+.secondary-button{
+    display:inline-block;
+    background:#e5e7eb;
+    color:#1e3a8a;
+    padding:8px 18px;
+    border-radius:6px;
+    text-decoration:none;
+}
+
+.empty-state{
+    border:1px dashed #cbd5e1;
+    border-radius:10px;
+    color:#64748b;
+    padding:45px 20px;
+    text-align:center;
+}
+
+.empty-state i{
+    color:#2563eb;
+    font-size:32px;
+    margin-bottom:12px;
 }

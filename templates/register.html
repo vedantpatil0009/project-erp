@@ -58,7 +58,7 @@
 
                 <i class="fa-solid fa-phone"></i>
 
-                <input type="tel" placeholder="Phone Number" required>
+                <input type="tel" name="phone" placeholder="Phone Number" required>
 
             </div>
 
@@ -66,7 +66,7 @@
 
                 <i class="fa-solid fa-users"></i>
 
-                <select name="role" required>
+                <select name="role" id="registrationRole" required>
 
                     <option value="">Select Role</option>
 
@@ -80,11 +80,39 @@
 
             </div>
 
-            <div class="input-box">
+            <div class="input-box role-id-field" data-role="Student" hidden>
 
                 <i class="fa-solid fa-id-card"></i>
 
-                <input type="text" placeholder="Student / Employee ID" required>
+                <input
+                    type="text"
+                    name="enrollment_no"
+                    placeholder="Student Enrollment Number"
+                    disabled>
+
+            </div>
+
+            <div class="input-box role-id-field" data-role="Teacher" hidden>
+
+                <i class="fa-solid fa-id-card"></i>
+
+                <input
+                    type="text"
+                    name="employee_id"
+                    placeholder="Employee ID"
+                    disabled>
+
+            </div>
+
+            <div class="input-box role-id-field" data-role="Parent" hidden>
+
+                <i class="fa-solid fa-id-card"></i>
+
+                <input
+                    type="text"
+                    name="parent_id"
+                    placeholder="Parent ID"
+                    disabled>
 
             </div>
 
@@ -92,7 +120,7 @@
 
                 <i class="fa-solid fa-school"></i>
 
-                <input type="text" placeholder="Department / Class" required>
+                <input type="text" name="department" placeholder="Department / Class" required>
 
             </div>
 

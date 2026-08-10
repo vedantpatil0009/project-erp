@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo"><h2>EduSphere</h2></div>
+    <ul>
+        <li onclick="window.location.href='{{ url_for('student') }}'">
+            <i class="fa-solid fa-house"></i><span>Dashboard</span>
+        </li>
+        <li class="sidebar-profile active">
+            <i class="fa-solid fa-circle-user"></i>
+            <div class="sidebar-profile-details">
+                <strong>{{ current_user.full_name }}</strong>
+                <small>{{ current_user.enrollment_no or 'Enrollment unavailable' }}</small>
+            </div>
+        </li>
+        <li onclick="window.location.href='{{ url_for('logout') }}'">
+            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+        </li>
+    </ul>
+</div>
+
+<main class="main">
+    <div class="topbar"><h2>My Profile</h2></div>
+
+    {% with messages = get_flashed_messages() %}
+    {% for message in messages %}<div class="alert">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    <section class="profile-card">
+        <div class="profile-heading">
+            <i class="fa-solid fa-circle-user"></i>
+            <div><h3>{{ current_user.full_name }}</h3><p>Student Profile</p></div>
+        </div>
+        <div class="profile-details">
+            <div class="profile-detail"><span>Full Name</span><strong>{{ current_user.full_name }}</strong></div>
+            <div class="profile-detail"><span>Email</span><strong>{{ current_user.email or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Phone Number</span><strong>{{ student_profile.phone or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Enrollment Number</span><strong>{{ current_user.enrollment_no or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Department</span><strong>{{ student_profile.department or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Semester</span><strong>{{ student_profile.semester or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Division</span><strong>{{ student_profile.division or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Parent Email</span><strong>{{ student_profile.parent_email or 'Not available' }}</strong></div>
+        </div>
+        <a class="secondary-button" href="{{ url_for('student') }}">Back to Dashboard</a>
+        <a class="secondary-button" href="{{ url_for('edit_student_profile') }}">Edit Profile</a>
+    </section>
+</main>
+</body>
+</html>

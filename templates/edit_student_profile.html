@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student Profile | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar">
+    <div class="logo"><h2>EduSphere</h2></div>
+    <ul>
+        <li onclick="window.location.href='{{ url_for('student') }}'">
+            <i class="fa-solid fa-house"></i><span>Dashboard</span>
+        </li>
+        <li class="sidebar-profile active" onclick="window.location.href='{{ url_for('student_profile') }}'">
+            <i class="fa-solid fa-circle-user"></i>
+            <div class="sidebar-profile-details">
+                <strong>{{ current_user.full_name }}</strong>
+                <small>{{ current_user.enrollment_no or 'Enrollment unavailable' }}</small>
+            </div>
+        </li>
+        <li onclick="window.location.href='{{ url_for('logout') }}'">
+            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+        </li>
+    </ul>
+</div>
+
+<main class="main">
+    <div class="topbar"><h2>Edit Profile</h2></div>
+    <section class="profile-card">
+        <form class="profile-form" method="POST" action="{{ url_for('edit_student_profile') }}">
+            <div><label for="full_name">Full Name</label><input id="full_name" name="full_name" value="{{ current_user.full_name }}" required></div>
+            <div><label for="email">Email</label><input id="email" type="email" name="email" value="{{ current_user.email or '' }}" required></div>
+            <div><label for="phone">Phone Number</label><input id="phone" type="tel" name="phone" value="{{ student_profile.phone or '' }}"></div>
+            <div><label for="enrollment_no">Enrollment Number</label><input id="enrollment_no" value="{{ current_user.enrollment_no or '' }}" readonly></div>
+            <div><label for="department">Department</label><input id="department" name="department" value="{{ student_profile.department or '' }}"></div>
+            <div><label for="semester">Semester</label><input id="semester" type="number" min="1" name="semester" value="{{ student_profile.semester or '' }}"></div>
+            <div><label for="division">Division</label><input id="division" name="division" value="{{ student_profile.division or '' }}"></div>
+            <div><label for="parent_email">Parent Email</label><input id="parent_email" type="email" name="parent_email" value="{{ student_profile.parent_email or '' }}"></div>
+            <div class="profile-actions full-width">
+                <a class="secondary-button" href="{{ url_for('student_profile') }}">Cancel</a>
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -3,6 +3,8 @@ const roles = document.querySelectorAll(".role");
 
 // Get login title
 const loginTitle = document.getElementById("loginTitle");
+const loginRole = document.getElementById("loginRole");
+const loginId = document.getElementById("loginId");
 
 // Current selected role
 let currentRole = "Student";
@@ -23,32 +25,14 @@ function selectRole(element, roleName){
 
     // Save selected role
     currentRole = roleName.replace(" Login","");
+    loginRole.value = currentRole;
+
+    const identifierLabels = {
+        Student: "Enrollment ID",
+        Teacher: "Employee ID",
+        Parent: "Parent ID",
+        Admin: "Admin ID"
+    };
+    loginId.placeholder = identifierLabels[currentRole];
+    loginId.value = "";
 }
-
-// Login Button
-const form = document.querySelector("form");
-
-form.addEventListener("submit",function(e){
-
-    e.preventDefault();
-
-    alert(currentRole + " Login Successful!");
-
-    // Redirect according to role
-    if(currentRole === "Student"){
-        window.location.href = "/student";
-    }
-
-    else if(currentRole === "Teacher"){
-        window.location.href = "/teacher";
-    }
-
-    else if(currentRole === "Parent"){
-        window.location.href = "/parent";
-    }
-
-    else if(currentRole === "Admin"){
-        window.location.href = "/admin";
-    }
-
-});

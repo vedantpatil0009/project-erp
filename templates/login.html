@@ -38,6 +38,14 @@
 
         <h2>Login</h2>
 
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <div class="roles">
 
             <div class="role active" onclick="selectRole(this,'Student Login')">
@@ -65,18 +73,22 @@
         <h3 id="loginTitle">Student Login</h3>
 
         <form action="/login" method="POST">
-            
+
+            <input type="hidden" name="role" id="loginRole" value="Student">
 
             <input
-            type="email"
-            placeholder="Email Address" 
-            name="email"
+            type="text"
+            placeholder="Enrollment ID"
+            name="login_id"
+            id="loginId"
+            autocomplete="username"
             required>
 
             <input
             type="password"
             placeholder="Password"
             name="password"
+            autocomplete="current-password"
             required>
 
             <div class="options">
