@@ -6,6 +6,7 @@
     <title>EduSphere ERP | Login</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css')}}">
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,33 +19,9 @@
 
 <div class="container">
 
-    <!-- Left Side -->
-    <div class="left-panel">
-
-        <h1>EduSphere ERP</h1>
-
-        <p>
-            Welcome to the School Management System.
-            Select your role and login to continue.
-        </p>
-
-        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900"
-        alt="Students">
-
-    </div>
-
-    <!-- Right Side -->
     <div class="right-panel">
 
         <h2>Login</h2>
-
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
 
         <div class="roles">
 
@@ -90,6 +67,14 @@
             name="password"
             autocomplete="current-password"
             required>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
 
             <div class="options">
 

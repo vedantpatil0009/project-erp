@@ -105,6 +105,7 @@ body{
     background:white;
     border-radius:15px;
     padding:25px;
+    min-width:0;
     text-align:center;
     box-shadow:0 5px 20px rgba(0,0,0,.08);
     transition:.3s;
@@ -127,6 +128,9 @@ body{
 
 .card h1{
     color:#0f766e;
+    font-size:clamp(1rem, 2vw, 2rem);
+    overflow-wrap:anywhere;
+    word-break:break-word;
 }
 
 /* Boxes */
@@ -195,7 +199,8 @@ form{
 }
 
 input,
-textarea{
+textarea,
+.profile-form select{
     width:100%;
     padding:12px;
     border:1px solid #ddd;
@@ -207,6 +212,122 @@ textarea{
 textarea{
     resize:vertical;
     min-height:120px;
+}
+
+.material-form label{
+    color:#0f766e;
+    font-weight:600;
+}
+
+.material-form select,
+.material-form input[type="file"]{
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+}
+
+.material-alert{
+    background:#e8f5e9;
+    border:1px solid #b0e0e6;
+    border-radius:8px;
+    color:#6b8eba;
+    margin-bottom:18px;
+    padding:12px;
+}
+
+/* Teacher profile */
+.profile-card{
+    background:white;
+    border-radius:15px;
+    padding:30px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+    max-width:850px;
+}
+
+.profile-heading{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.profile-heading i{
+    color:#0f766e;
+    font-size:48px;
+}
+
+.profile-details,
+.profile-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.profile-detail{
+    background:#f7f9ff;
+    border-radius:8px;
+    padding:15px;
+}
+
+.profile-detail span,
+.profile-form label{
+    display:block;
+    color:#666;
+    font-size:13px;
+    margin-bottom:5px;
+}
+
+.profile-form .full-width{
+    grid-column:1 / -1;
+}
+
+.profile-form input[readonly]{
+    background:#eef2ff;
+    color:#666;
+}
+
+.profile-actions{
+    display:flex;
+    gap:12px;
+    margin-top:10px;
+}
+
+.secondary-button{
+    display:inline-block;
+    background:#e5e7eb;
+    color:#1e3a8a;
+    padding:8px 18px;
+    border-radius:6px;
+    text-decoration:none;
+}
+
+/* Keep wide dashboard tables inside their cards on small screens. */
+.main,
+.box,
+.profile-card{
+    min-width:0;
+}
+
+.box,
+.profile-card{
+    max-width:100%;
+}
+
+@media(max-width:700px){
+    .box,
+    .profile-card{
+        overflow-x:auto;
+    }
+
+    table{
+        min-width:620px;
+    }
+
+    table th,
+    table td{
+        white-space:nowrap;
+    }
 }
 
 /* Buttons */

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section_title }} | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_file) }}"><link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body><div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>{% for endpoint, label, icon in nav_items %}<li class="{% if endpoint == active_endpoint %}active{% endif %}" onclick="window.location.href='{{ url_for(endpoint) }}'"><i class="fa-solid {{ icon }}"></i><span>{{ label }}</span></li>{% endfor %}<li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li></ul></div>
+<main class="main"><div class="topbar"><h2>{{ section_title }}</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>{{ role }}</p></div></div></div><section class="box full"><h3>{{ section_title }}</h3>{% if table_rows %}<table><tr>{% for header in table_headers %}<th>{{ header }}</th>{% endfor %}</tr>{% for row in table_rows %}<tr>{% for value in row %}<td>{{ value }}</td>{% endfor %}</tr>{% endfor %}</table>{% else %}<p>{{ empty_message }}</p>{% endif %}</section></main></body>
+</html>

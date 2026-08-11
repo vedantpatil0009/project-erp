@@ -1,15 +1,21 @@
+import os
+import uuid
+
 from flask import (
     Flask,
+    abort,
     render_template,
     request,
     redirect,
     url_for,
     flash,
-    session
+    session,
+    send_from_directory,
 )
 
 from flask_bcrypt import Bcrypt
-from sqlalchemy import inspect, text
+from sqlalchemy import func, inspect, text
+from werkzeug.utils import secure_filename
 
 from config import Config
 from models import db
@@ -17,6 +23,9 @@ from models import db
 from models.user import User
 from models.student import Student
 from models.teacher import Teacher
+from models.academic_material import AcademicMaterial
+from models.department import Department
+from models.parent_student_connection import ParentStudentConnection
 
 
 app = Flask(__name__)
@@ -43,6 +52,12 @@ ROLE_DASHBOARD_ENDPOINTS = {
 }
 
 PUBLIC_REGISTRATION_ROLES = {"Student", "Teacher", "Parent"}
+DEFAULT_DEPARTMENTS = [
+    "Computer Engineering",
+    "Civil Engineering",
+    "Electronics Engineering",
+    "Mechanical Engineering",
+]
 
 STUDENT_SECTION_CONFIG = {
     "attendance": ("Attendance", "fa-user-check", "No attendance records available."),
@@ -55,6 +70,114 @@ STUDENT_SECTION_CONFIG = {
     "library": ("Library", "fa-book-open-reader", "No library records available."),
     "notices": ("Notices", "fa-bell", "No notices available yet."),
     "settings": ("Settings", "fa-gear", "No student settings are available yet."),
+}
+
+MATERIAL_TYPE_BY_SECTION = {
+    "attendance": "Attendance",
+    "materials": "Study Material",
+    "timetable": "Timetable",
+    "calendar": "Academic Calendar",
+    "assignments": "Assignment",
+    "results": "Result",
+    "notices": "Notice",
+}
+
+MATERIAL_UPLOAD_RULES = {
+    "Assignment": {
+        "extensions": ["pdf"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF file",
+    },
+    "Study Material": {
+        "extensions": ["pdf", "doc", "docx", "ppt", "pptx"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF, DOC, DOCX, PPT, or PPTX file",
+    },
+    "Timetable": {
+        "extensions": ["pdf", "jpg", "jpeg", "png"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF, JPG, JPEG, or PNG file",
+    },
+    "Result": {
+        "extensions": ["pdf"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF file",
+    },
+    "Attendance": {
+        "extensions": ["pdf"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF file",
+    },
+    "Notice": {
+        "extensions": ["pdf"],
+        "file_required": False,
+        "description_required": True,
+        "file_label": "Optional PDF attachment",
+    },
+    "Academic Calendar": {
+        "extensions": ["pdf"],
+        "file_required": True,
+        "description_required": False,
+        "file_label": "PDF file",
+    },
+}
+MATERIAL_TYPES = set(MATERIAL_UPLOAD_RULES)
+SUBJECT_MATERIAL_TYPES = {"Assignment", "Study Material"}
+SUBJECT_FILTER_SECTIONS = {
+    "assignments", "materials", "notices", "results", "attendance",
+}
+MATERIAL_UPLOAD_FOLDER = os.path.join(
+    app.root_path, "static", "uploads", "materials"
+)
+
+ROLE_NAV_ITEMS = {
+    "Teacher": [
+        ("teacher", "Dashboard", "fa-house"),
+        ("teacher_profile", "Profile", "fa-circle-user"),
+        ("teacher_students", "Students", "fa-users"),
+        ("teacher_attendance", "Attendance", "fa-user-check"),
+        ("teacher_materials", "Study Material", "fa-book"),
+        ("teacher_assignments", "Assignments", "fa-file-lines"),
+        ("manage_materials", "Manage Materials", "fa-folder-plus"),
+    ],
+    "Parent": [
+        ("parent", "Dashboard", "fa-house"),
+        ("parent_students", "My Students", "fa-user-graduate"),
+        ("parent_results", "Results", "fa-square-poll-vertical"),
+        ("parent_attendance", "Attendance", "fa-user-check"),
+        ("parent_calendar", "Academic Calendar", "fa-calendar-week"),
+        ("parent_notices", "Notices", "fa-bell"),
+    ],
+    "Admin": [
+        ("admin", "Dashboard", "fa-house"),
+        ("manage_departments", "Departments", "fa-building"),
+        ("admin_students", "Students", "fa-user-graduate"),
+        ("admin_teachers", "Teachers", "fa-chalkboard-user"),
+        ("admin_parents", "Parents", "fa-people-group"),
+    ],
+}
+
+ROLE_SECTION_CONFIG = {
+    "Teacher": {
+        "students": ("Students", "fa-users", ["Name", "Enrollment Number", "Department", "Semester"], "No students are assigned to your department."),
+        "attendance": ("Attendance", "fa-user-check", ["Student", "Subject", "Date", "Status"], "No attendance records are available yet."),
+        "materials": ("Study Material", "fa-book", ["Title", "Subject", "Uploaded On"], "You have not uploaded any study material yet."),
+        "assignments": ("Assignments", "fa-file-lines", ["Assignment", "Subject", "Due Date", "Status"], "You have not created any assignments yet."),
+    },
+    "Parent": {
+        "students": ("My Students", "fa-user-graduate", ["Name", "Enrollment Number", "Department", "Semester", "Division"], "No student is connected to this parent account."),
+        "notices": ("Notices", "fa-bell", ["Notice", "Published On", "Posted By"], "No notices are available yet."),
+    },
+    "Admin": {
+        "students": ("Students", "fa-user-graduate", ["Name", "Enrollment Number", "Email", "Phone"], "No students are registered yet."),
+        "teachers": ("Teachers", "fa-chalkboard-user", ["Name", "Employee ID", "Email", "Phone"], "No teachers are registered yet."),
+        "parents": ("Parents", "fa-people-group", ["Name", "Parent ID", "Email", "Phone"], "No parents are registered yet."),
+    },
 }
 
 
@@ -118,6 +241,59 @@ def ensure_teacher_profile_columns():
             )
 
 
+def ensure_academic_material_columns():
+    """Add the subject field without recreating the existing materials table."""
+    inspector = inspect(db.engine)
+    material_columns = {
+        column["name"] for column in inspector.get_columns("academic_materials")
+    }
+
+    if "subject" not in material_columns:
+        with db.engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE academic_materials ADD COLUMN subject VARCHAR(100)")
+            )
+
+
+def seed_departments():
+    """Create defaults and preserve department names already used by the app."""
+    existing_names = {department.name.casefold() for department in Department.query.all()}
+    department_names = set(DEFAULT_DEPARTMENTS)
+
+    for model in (Student, Teacher, AcademicMaterial):
+        department_names.update(
+            name.strip()
+            for (name,) in db.session.query(model.department).filter(
+                model.department.isnot(None),
+                model.department != "",
+            ).distinct().all()
+            if name and name.strip()
+        )
+
+    for name in sorted(department_names, key=str.casefold):
+        if name.casefold() not in existing_names:
+            db.session.add(Department(name=name))
+            existing_names.add(name.casefold())
+
+    db.session.commit()
+
+
+def get_departments():
+    return Department.query.order_by(Department.name).all()
+
+
+def selected_department_is_valid(name):
+    return bool(name and Department.query.filter_by(name=name).first())
+
+
+def department_is_in_use(name):
+    return any([
+        Student.query.filter_by(department=name).first(),
+        Teacher.query.filter_by(department=name).first(),
+        AcademicMaterial.query.filter_by(department=name).first(),
+    ])
+
+
 def get_current_student_profile():
     """Return the logged-in Student user and their Student profile record."""
     if session.get("role") != "Student" or "user_id" not in session:
@@ -137,6 +313,21 @@ def get_current_student_profile():
     return user, student_profile
 
 
+def get_current_teacher_profile():
+    """Return the logged-in Teacher user and their Teacher profile record."""
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        return None, None
+
+    teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
+    if not teacher_profile:
+        teacher_profile = Teacher(user_id=user.id)
+        db.session.add(teacher_profile)
+        db.session.commit()
+
+    return user, teacher_profile
+
+
 def get_current_user_for_role(role):
     if session.get("role") != role or "user_id" not in session:
         return None
@@ -149,6 +340,53 @@ def get_current_user_for_role(role):
     return user
 
 
+def allowed_material_file(material_type, filename):
+    rule = MATERIAL_UPLOAD_RULES.get(material_type)
+    return (
+        rule is not None
+        and "." in filename
+        and filename.rsplit(".", 1)[1].lower() in rule["extensions"]
+    )
+
+
+def material_rows(material_type, teacher_user_id):
+    return [
+        [
+            material.title,
+            material.subject or "Not set",
+            material.uploaded_at.strftime("%d %b %Y"),
+        ]
+        for material in AcademicMaterial.query.filter_by(
+            material_type=material_type,
+            teacher_user_id=teacher_user_id,
+        ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+    ]
+
+
+def get_department_subjects(department):
+    """Return real subjects available in a department, without hardcoding names."""
+    if not department:
+        return []
+
+    teacher_subjects = [
+        subject
+        for (subject,) in db.session.query(Teacher.subject).filter(
+            Teacher.department == department,
+            Teacher.subject.isnot(None),
+            Teacher.subject != "",
+        ).distinct().all()
+    ]
+    material_subjects = [
+        subject
+        for (subject,) in db.session.query(AcademicMaterial.subject).filter(
+            AcademicMaterial.department == department,
+            AcademicMaterial.subject.isnot(None),
+            AcademicMaterial.subject != "",
+        ).distinct().all()
+    ]
+    return sorted(set(teacher_subjects + material_subjects), key=str.casefold)
+
+
 def render_student_section(section_name):
     user, student_profile = get_current_student_profile()
     if not user:
@@ -156,6 +394,25 @@ def render_student_section(section_name):
         return redirect(url_for("login"))
 
     title, icon, empty_message = STUDENT_SECTION_CONFIG[section_name]
+    material_type = MATERIAL_TYPE_BY_SECTION.get(section_name)
+    show_subject_filter = section_name in SUBJECT_FILTER_SECTIONS
+    available_subjects = get_department_subjects(student_profile.department)
+    selected_subject = request.args.get("subject", "").strip()
+    if selected_subject not in available_subjects:
+        selected_subject = ""
+
+    academic_materials = []
+    if material_type and student_profile.department:
+        material_query = AcademicMaterial.query.filter_by(
+            material_type=material_type,
+            department=student_profile.department,
+        )
+        if show_subject_filter and selected_subject:
+            material_query = material_query.filter_by(subject=selected_subject)
+        academic_materials = material_query.order_by(
+            AcademicMaterial.uploaded_at.desc()
+        ).all()
+
     return render_template(
         "student_section.html",
         current_user=user,
@@ -163,8 +420,66 @@ def render_student_section(section_name):
         active_page=section_name,
         section_title=title,
         section_icon=icon,
-        empty_message=empty_message
+        empty_message=empty_message,
+        academic_materials=academic_materials,
+        show_subject_filter=show_subject_filter,
+        available_subjects=available_subjects,
+        selected_subject=selected_subject,
+        section_endpoint=f"student_{section_name}",
     )
+
+
+def render_role_section(role, section_name, table_rows=None):
+    user = get_current_user_for_role(role)
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    title, icon, headers, empty_message = ROLE_SECTION_CONFIG[role][section_name]
+    return render_template(
+        "dashboard_section.html",
+        current_user=user,
+        role=role,
+        css_file=f"css/{role.lower()}.css",
+        nav_items=ROLE_NAV_ITEMS[role],
+        active_endpoint=request.endpoint,
+        section_title=title,
+        section_icon=icon,
+        table_headers=headers,
+        table_rows=table_rows or [],
+        empty_message=empty_message,
+    )
+
+
+def get_parent_connected_students(user):
+    connected_students = []
+    connections = ParentStudentConnection.query.filter_by(
+        parent_user_id=user.id
+    ).all()
+    for connection in connections:
+        student_user = db.session.get(User, connection.student_user_id)
+        profile = Student.query.filter_by(user_id=connection.student_user_id).first()
+        if student_user and student_user.role == "Student" and profile:
+            connected_students.append((student_user, profile))
+    return connected_students
+
+
+def get_parent_connected_student(user, student_user_id):
+    if not student_user_id:
+        return None
+
+    connection = ParentStudentConnection.query.filter_by(
+        parent_user_id=user.id,
+        student_user_id=student_user_id,
+    ).first()
+    if not connection:
+        return None
+
+    student_user = db.session.get(User, student_user_id)
+    profile = Student.query.filter_by(user_id=student_user_id).first()
+    if not student_user or student_user.role != "Student" or not profile:
+        return None
+    return student_user, profile
 
 
 # ==========================================
@@ -235,6 +550,7 @@ def register():
         email = request.form.get("email")
         phone = request.form.get("phone", "").strip() or None
         department = request.form.get("department", "").strip() or None
+        parent_email = request.form.get("parent_email", "").strip() or None
         password = request.form.get("password")
         role = request.form.get("role")
 
@@ -252,6 +568,14 @@ def register():
 
         if role not in PUBLIC_REGISTRATION_ROLES:
             flash("Please select a valid registration role.")
+            return redirect(url_for("register"))
+
+        if role in {"Student", "Teacher"} and not selected_department_is_valid(department):
+            flash("Please select a valid department.")
+            return redirect(url_for("register"))
+
+        if role == "Student" and (not parent_email or "@" not in parent_email):
+            flash("A valid parent email is required for Student registration.")
             return redirect(url_for("register"))
 
         print("Name:", full_name)
@@ -420,7 +744,8 @@ def register():
             db.session.add(Student(
                 user_id=new_user.id,
                 phone=phone,
-                department=department
+                department=department,
+                parent_email=parent_email,
             ))
         elif role == "Teacher":
             db.session.add(Teacher(
@@ -445,7 +770,8 @@ def register():
         )
 
     return render_template(
-        "register.html"
+        "register.html",
+        departments=get_departments(),
     )
 
 
@@ -516,14 +842,18 @@ def edit_student_profile():
             flash("Semester must be a number.")
             return redirect(url_for("edit_student_profile"))
 
+        department = request.form.get("department", "").strip()
+        if not selected_department_is_valid(department):
+            flash("Please select a valid department.")
+            return redirect(url_for("edit_student_profile"))
+
         user.full_name = full_name
         user.email = email
         user.phone = request.form.get("phone", "").strip() or None
         profile.phone = user.phone
-        profile.department = request.form.get("department", "").strip() or None
+        profile.department = department
         profile.semester = semester
         profile.division = request.form.get("division", "").strip() or None
-        profile.parent_email = request.form.get("parent_email", "").strip() or None
         db.session.commit()
 
         flash("Profile updated successfully!")
@@ -533,6 +863,7 @@ def edit_student_profile():
         "edit_student_profile.html",
         current_user=user,
         student_profile=profile,
+        departments=get_departments(),
         active_page="profile"
     )
 
@@ -593,18 +924,271 @@ def student_settings():
 
 @app.route("/teacher")
 def teacher():
-    user = get_current_user_for_role("Teacher")
+    user, teacher_profile = get_current_teacher_profile()
     if not user:
         flash("Access denied!")
         return redirect(
             url_for("login")
         )
 
-    teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
     return render_template(
         "teacher.html",
         current_user=user,
         teacher_profile=teacher_profile
+    )
+
+
+@app.route("/teacher/profile")
+def teacher_profile():
+    user, profile = get_current_teacher_profile()
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    return render_template(
+        "teacher_profile.html",
+        current_user=user,
+        teacher_profile=profile,
+        active_page="profile",
+    )
+
+
+@app.route("/teacher/profile/edit", methods=["GET", "POST"])
+def edit_teacher_profile():
+    user, profile = get_current_teacher_profile()
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+
+        if not full_name or not email:
+            flash("Full name and email are required.")
+            return redirect(url_for("edit_teacher_profile"))
+
+        existing_email = User.query.filter(
+            User.email == email,
+            User.id != user.id,
+        ).first()
+        if existing_email:
+            flash("Email already registered!")
+            return redirect(url_for("edit_teacher_profile"))
+
+        department = request.form.get("department", "").strip()
+        if not selected_department_is_valid(department):
+            flash("Please select a valid department.")
+            return redirect(url_for("edit_teacher_profile"))
+
+        user.full_name = full_name
+        user.email = email
+        user.phone = request.form.get("phone", "").strip() or None
+        profile.department = department
+        profile.subject = request.form.get("subject", "").strip() or None
+        db.session.commit()
+
+        flash("Profile updated successfully!")
+        return redirect(url_for("teacher_profile"))
+
+    return render_template(
+        "edit_teacher_profile.html",
+        current_user=user,
+        teacher_profile=profile,
+        departments=get_departments(),
+        active_page="profile",
+    )
+
+
+@app.route("/teacher/students")
+def teacher_students():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
+    profiles = Student.query.filter_by(
+        department=teacher_profile.department
+    ).all() if teacher_profile and teacher_profile.department else []
+    rows = []
+    for profile in profiles:
+        student_user = db.session.get(User, profile.user_id)
+        if student_user and student_user.role == "Student":
+            rows.append([
+                student_user.full_name,
+                student_user.enrollment_no or "Not available",
+                profile.department or "Not available",
+                profile.semester or "Not available",
+            ])
+    return render_role_section("Teacher", "students", rows)
+
+
+@app.route("/teacher/attendance")
+def teacher_attendance():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    return render_role_section(
+        "Teacher", "attendance", material_rows("Attendance", user.id)
+    )
+
+
+@app.route("/teacher/materials")
+def teacher_materials():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    return render_role_section(
+        "Teacher", "materials", material_rows("Study Material", user.id)
+    )
+
+
+@app.route("/teacher/assignments")
+def teacher_assignments():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    return render_role_section(
+        "Teacher", "assignments", material_rows("Assignment", user.id)
+    )
+
+
+@app.route("/teacher/manage-materials", methods=["GET", "POST"])
+def manage_materials():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
+    if not teacher_profile or not teacher_profile.department:
+        flash("Set your department before managing materials.")
+        return redirect(url_for("teacher"))
+
+    if request.method == "POST":
+        material_type = request.form.get("material_type", "")
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
+        subject = request.form.get("subject", "").strip()
+        uploaded_file = request.files.get("material_file")
+
+        if material_type not in MATERIAL_TYPES or not title:
+            flash("Select a material type and enter a title.")
+            return redirect(url_for("manage_materials"))
+
+        upload_rule = MATERIAL_UPLOAD_RULES[material_type]
+        if material_type in SUBJECT_MATERIAL_TYPES:
+            teacher_subject = (teacher_profile.subject or "").strip()
+            if not teacher_subject:
+                flash("Set your subject in your profile before uploading this material.")
+                return redirect(url_for("manage_materials"))
+            if subject != teacher_subject:
+                flash("Select your assigned subject for this material.")
+                return redirect(url_for("manage_materials"))
+        else:
+            subject = None
+
+        has_file = bool(uploaded_file and uploaded_file.filename)
+        if upload_rule["description_required"] and not description:
+            flash("A description is required for a notice.")
+            return redirect(url_for("manage_materials"))
+
+        if upload_rule["file_required"] and not has_file:
+            flash(f"{upload_rule['file_label']} is required for {material_type}.")
+            return redirect(url_for("manage_materials"))
+
+        original_filename = None
+        stored_filename = None
+        saved_path = None
+        if has_file:
+            if not allowed_material_file(material_type, uploaded_file.filename):
+                flash(
+                    f"Unsupported file type. {material_type} accepts "
+                    f"{upload_rule['file_label']}."
+                )
+                return redirect(url_for("manage_materials"))
+
+            original_filename = secure_filename(uploaded_file.filename)
+            stored_filename = f"{uuid.uuid4().hex}_{original_filename}"
+            os.makedirs(MATERIAL_UPLOAD_FOLDER, exist_ok=True)
+            saved_path = os.path.join(MATERIAL_UPLOAD_FOLDER, stored_filename)
+            uploaded_file.save(saved_path)
+
+        material = AcademicMaterial(
+            teacher_user_id=user.id,
+            material_type=material_type,
+            department=teacher_profile.department,
+            subject=subject,
+            title=title,
+            description=description or None,
+            original_filename=original_filename,
+            stored_filename=stored_filename,
+        )
+        try:
+            db.session.add(material)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            if saved_path and os.path.exists(saved_path):
+                os.remove(saved_path)
+            flash("Unable to save the material. Please try again.")
+            return redirect(url_for("manage_materials"))
+
+        flash("Material saved successfully.")
+        return redirect(url_for("manage_materials"))
+
+    materials = AcademicMaterial.query.filter_by(
+        teacher_user_id=user.id
+    ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+    return render_template(
+        "manage_materials.html",
+        current_user=user,
+        teacher_profile=teacher_profile,
+        material_types=sorted(MATERIAL_TYPES),
+        material_upload_rules=MATERIAL_UPLOAD_RULES,
+        teacher_subjects=[teacher_profile.subject] if teacher_profile.subject else [],
+        materials=materials,
+    )
+
+
+@app.route("/materials/<int:material_id>/download")
+def download_material(material_id):
+    user_id = session.get("user_id")
+    role = session.get("role")
+    material = db.session.get(AcademicMaterial, material_id)
+    if not user_id or material is None or not material.stored_filename:
+        abort(404)
+
+    if role == "Student":
+        student_profile = Student.query.filter_by(user_id=user_id).first()
+        permitted = bool(
+            student_profile and student_profile.department == material.department
+        )
+    elif role == "Teacher":
+        permitted = material.teacher_user_id == user_id
+    elif role == "Parent":
+        parent_user = db.session.get(User, user_id)
+        permitted = bool(
+            parent_user and any(
+                student_profile.department == material.department
+                for _, student_profile in get_parent_connected_students(parent_user)
+            )
+        )
+    else:
+        permitted = False
+
+    if not permitted:
+        abort(403)
+
+    return send_from_directory(
+        MATERIAL_UPLOAD_FOLDER,
+        material.stored_filename,
+        as_attachment=True,
+        download_name=material.original_filename,
     )
 
 
@@ -621,18 +1205,135 @@ def parent():
             url_for("login")
         )
 
-    connected_students = []
-    if user.email:
-        for profile in Student.query.filter_by(parent_email=user.email).all():
-            student_user = db.session.get(User, profile.user_id)
-            if student_user and student_user.role == "Student":
-                connected_students.append((student_user, profile))
+    connected_students = get_parent_connected_students(user)
 
     return render_template(
         "parent.html",
         current_user=user,
         connected_students=connected_students
     )
+
+
+@app.route("/parent/connect-student", methods=["POST"])
+def connect_parent_student():
+    user = get_current_user_for_role("Parent")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    enrollment_no = request.form.get("enrollment_no", "").strip()
+    student_user = User.query.filter_by(enrollment_no=enrollment_no).first()
+    if not enrollment_no or not student_user or student_user.role != "Student":
+        flash("Student enrollment number was not found.")
+        return redirect(url_for("parent"))
+
+    student_profile = Student.query.filter_by(user_id=student_user.id).first()
+    parent_email = (user.email or "").strip().casefold()
+    registered_parent_email = (
+        (student_profile.parent_email or "").strip().casefold()
+        if student_profile else ""
+    )
+    if not parent_email or parent_email != registered_parent_email:
+        flash("This student is not registered with your parent email.")
+        return redirect(url_for("parent"))
+
+    existing_connection = ParentStudentConnection.query.filter_by(
+        parent_user_id=user.id,
+        student_user_id=student_user.id,
+    ).first()
+    if existing_connection:
+        flash("This student is already connected to your account.")
+        return redirect(url_for("parent"))
+
+    db.session.add(ParentStudentConnection(
+        parent_user_id=user.id,
+        student_user_id=student_user.id,
+    ))
+    db.session.commit()
+    flash("Student connected successfully.")
+    return redirect(url_for("parent"))
+
+
+@app.route("/parent/students")
+def parent_students():
+    user = get_current_user_for_role("Parent")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    rows = [
+        [
+            student_user.full_name,
+            student_user.enrollment_no or "Not available",
+            profile.department or "Not available",
+            profile.semester or "Not available",
+            profile.division or "Not available",
+        ]
+        for student_user, profile in get_parent_connected_students(user)
+    ]
+    return render_role_section("Parent", "students", rows)
+
+
+def render_parent_academic_section(material_type, title, icon, empty_message):
+    user = get_current_user_for_role("Parent")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    connected_students = get_parent_connected_students(user)
+    requested_student_id = request.args.get("student_id", type=int)
+    selected_student = get_parent_connected_student(user, requested_student_id)
+    if requested_student_id and not selected_student:
+        flash("You can only view data for a connected student.")
+        return redirect(url_for("parent"))
+    if not selected_student and connected_students:
+        selected_student = connected_students[0]
+
+    materials = []
+    if selected_student:
+        _, student_profile = selected_student
+        materials = AcademicMaterial.query.filter_by(
+            material_type=material_type,
+            department=student_profile.department,
+        ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+
+    return render_template(
+        "parent_academic_section.html",
+        current_user=user,
+        connected_students=connected_students,
+        selected_student=selected_student,
+        materials=materials,
+        section_title=title,
+        section_icon=icon,
+        empty_message=empty_message,
+    )
+
+
+@app.route("/parent/results")
+def parent_results():
+    return render_parent_academic_section(
+        "Result", "Results", "fa-square-poll-vertical", "No data available."
+    )
+
+
+@app.route("/parent/attendance")
+def parent_attendance():
+    return render_parent_academic_section(
+        "Attendance", "Attendance", "fa-user-check", "No data available."
+    )
+
+
+@app.route("/parent/calendar")
+def parent_calendar():
+    return render_parent_academic_section(
+        "Academic Calendar", "Academic Calendar", "fa-calendar-week",
+        "No data available.",
+    )
+
+
+@app.route("/parent/notices")
+def parent_notices():
+    return render_role_section("Parent", "notices")
 
 
 # ==========================================
@@ -657,6 +1358,80 @@ def admin():
         students=students,
         teachers=teachers,
         parents=parents
+    )
+
+
+def admin_user_rows(role, identifier_field):
+    return [
+        [
+            user.full_name,
+            getattr(user, identifier_field) or "Not available",
+            user.email or "Not available",
+            user.phone or "Not available",
+        ]
+        for user in User.query.filter_by(role=role).all()
+    ]
+
+
+@app.route("/admin/students")
+def admin_students():
+    return render_role_section("Admin", "students", admin_user_rows("Student", "enrollment_no"))
+
+
+@app.route("/admin/teachers")
+def admin_teachers():
+    return render_role_section("Admin", "teachers", admin_user_rows("Teacher", "employee_id"))
+
+
+@app.route("/admin/parents")
+def admin_parents():
+    return render_role_section("Admin", "parents", admin_user_rows("Parent", "parent_id"))
+
+
+@app.route("/admin/departments", methods=["GET", "POST"])
+def manage_departments():
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        action = request.form.get("action")
+
+        if action == "add":
+            name = request.form.get("department_name", "").strip()
+            if not name:
+                flash("Department name is required.")
+            elif len(name) > 100:
+                flash("Department name must be 100 characters or fewer.")
+            elif Department.query.filter(
+                func.lower(Department.name) == name.casefold()
+            ).first():
+                flash("That department already exists.")
+            else:
+                db.session.add(Department(name=name))
+                db.session.commit()
+                flash("Department added successfully.")
+
+        elif action == "remove":
+            department = db.session.get(
+                Department, request.form.get("department_id", type=int)
+            )
+            if not department:
+                flash("Department not found.")
+            elif department_is_in_use(department.name):
+                flash("This department is in use and cannot be removed.")
+            else:
+                db.session.delete(department)
+                db.session.commit()
+                flash("Department removed successfully.")
+
+        return redirect(url_for("manage_departments"))
+
+    return render_template(
+        "manage_departments.html",
+        current_user=user,
+        departments=get_departments(),
     )
 
 
@@ -688,6 +1463,8 @@ with app.app_context():
     ensure_user_identifier_columns()
     ensure_student_profile_columns()
     ensure_teacher_profile_columns()
+    ensure_academic_material_columns()
+    seed_departments()
 
 
 # ==========================================

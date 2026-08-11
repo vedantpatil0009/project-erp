@@ -305,3 +305,28 @@ table{
 }
 
 }
+
+/* Keep wide dashboard tables inside their cards on small screens. */
+.main,
+.box{
+    min-width:0;
+}
+
+.box{
+    max-width:100%;
+}
+
+@media(max-width:700px){
+    .box{
+        overflow-x:auto;
+    }
+
+    table{
+        min-width:620px;
+    }
+
+    table th,
+    table td{
+        white-space:nowrap;
+    }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Materials | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>
+        <li onclick="window.location.href='{{ url_for('teacher') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+        <li onclick="window.location.href='{{ url_for('teacher_profile') }}'"><i class="fa-solid fa-circle-user"></i><span>Profile</span></li>
+        <li onclick="window.location.href='{{ url_for('teacher_students') }}'"><i class="fa-solid fa-users"></i><span>Students</span></li>
+        <li onclick="window.location.href='{{ url_for('teacher_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+        <li onclick="window.location.href='{{ url_for('teacher_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Material</span></li>
+        <li onclick="window.location.href='{{ url_for('teacher_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
+        <li class="active"><i class="fa-solid fa-folder-plus"></i><span>Manage Materials</span></li>
+        <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+    </ul></div>
+    <main class="main">
+        <div class="topbar"><h2>Manage Materials</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>{{ teacher_profile.department }}</p></div></div></div>
+        {% with messages = get_flashed_messages() %}{% for message in messages %}<div class="material-alert">{{ message }}</div>{% endfor %}{% endwith %}
+        <section class="box full"><h3>Add Academic Material</h3>
+            <form class="material-form" method="POST" enctype="multipart/form-data">
+                <label>Material Type<select id="material_type" name="material_type" required><option value="">Select type</option>{% for material_type in material_types %}<option value="{{ material_type }}">{{ material_type }}</option>{% endfor %}</select></label>
+                <label id="subject_field" hidden>Subject<select id="subject" name="subject" disabled><option value="">Select subject</option>{% for subject in teacher_subjects %}<option value="{{ subject }}">{{ subject }}</option>{% endfor %}</select><small id="subject_hint"></small></label>
+                <label>Title<input type="text" name="title" required></label>
+                <label id="description_field">Description<textarea id="description" name="description" placeholder="Optional details for students"></textarea><small id="description_hint"></small></label>
+                <label id="file_field"><span id="file_label">File</span><input id="material_file" type="file" name="material_file"><small id="file_hint">Select a material type to see file requirements.</small></label>
+                <button type="submit">Save Material</button>
+            </form>
+        </section>
+        <section class="box full"><h3>My Uploaded Materials</h3>{% if materials %}
+            <table><tr><th>Type</th><th>Title</th><th>Department</th><th>Uploaded</th><th>File</th></tr>{% for material in materials %}<tr><td>{{ material.material_type }}</td><td>{{ material.title }}</td><td>{{ material.department }}</td><td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td><td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td></tr>{% endfor %}</table>
+        {% else %}<p>No materials uploaded yet.</p>{% endif %}</section>
+    </main>
+    <script>
+        const uploadRules = {{ material_upload_rules | tojson }};
+        const typeField = document.getElementById("material_type");
+        const fileField = document.getElementById("material_file");
+        const fileLabel = document.getElementById("file_label");
+        const fileHint = document.getElementById("file_hint");
+        const descriptionField = document.getElementById("description");
+        const descriptionHint = document.getElementById("description_hint");
+        const subjectField = document.getElementById("subject_field");
+        const subjectSelect = document.getElementById("subject");
+        const subjectHint = document.getElementById("subject_hint");
+        const subjectMaterialTypes = ["Assignment", "Study Material"];
+
+        function updateMaterialFields() {
+            const rule = uploadRules[typeField.value];
+            fileField.value = "";
+            const needsSubject = subjectMaterialTypes.includes(typeField.value);
+            subjectField.hidden = !needsSubject;
+            subjectSelect.disabled = !needsSubject;
+            subjectSelect.required = needsSubject;
+            subjectHint.textContent = needsSubject
+                ? "Select your assigned subject."
+                : "";
+            if (!rule) {
+                fileField.required = false;
+                fileField.removeAttribute("accept");
+                fileLabel.textContent = "File";
+                fileHint.textContent = "Select a material type to see file requirements.";
+                descriptionField.required = false;
+                descriptionHint.textContent = "";
+                return;
+            }
+
+            const extensions = [...rule.extensions].map(extension => `.${extension}`).join(",");
+            fileField.accept = extensions;
+            fileField.required = rule.file_required;
+            fileLabel.textContent = rule.file_label + (rule.file_required ? " *" : "");
+            fileHint.textContent = rule.file_required ? "File required." : "File optional.";
+            descriptionField.required = rule.description_required;
+            descriptionField.placeholder = rule.description_required
+                ? "Enter the notice details"
+                : "Optional details for students";
+            descriptionHint.textContent = rule.description_required ? "Description required for notices." : "";
+        }
+
+        typeField.addEventListener("change", updateMaterialFields);
+        updateMaterialFields();
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Profile | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>
+    <li onclick="window.location.href='{{ url_for('teacher') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li class="active"><i class="fa-solid fa-circle-user"></i><span>Profile</span></li>
+    <li onclick="window.location.href='{{ url_for('teacher_students') }}'"><i class="fa-solid fa-users"></i><span>Students</span></li>
+    <li onclick="window.location.href='{{ url_for('teacher_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+    <li onclick="window.location.href='{{ url_for('teacher_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Material</span></li>
+    <li onclick="window.location.href='{{ url_for('teacher_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
+    <li onclick="window.location.href='{{ url_for('manage_materials') }}'"><i class="fa-solid fa-folder-plus"></i><span>Manage Materials</span></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main">
+    <div class="topbar"><h2>My Profile</h2></div>
+    {% with messages = get_flashed_messages() %}{% for message in messages %}<div class="material-alert">{{ message }}</div>{% endfor %}{% endwith %}
+    <section class="profile-card">
+        <div class="profile-heading"><i class="fa-solid fa-circle-user"></i><div><h3>{{ current_user.full_name }}</h3><p>Teacher Profile</p></div></div>
+        <div class="profile-details">
+            <div class="profile-detail"><span>Full Name</span><strong>{{ current_user.full_name }}</strong></div>
+            <div class="profile-detail"><span>Email</span><strong>{{ current_user.email or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Phone Number</span><strong>{{ current_user.phone or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Employee ID</span><strong>{{ current_user.employee_id or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Department</span><strong>{{ teacher_profile.department or 'Not available' }}</strong></div>
+            <div class="profile-detail"><span>Subject</span><strong>{{ teacher_profile.subject or 'Not available' }}</strong></div>
+        </div>
+        <a class="secondary-button" href="{{ url_for('teacher') }}">Back to Dashboard</a>
+        <a class="secondary-button" href="{{ url_for('edit_teacher_profile') }}">Edit Profile</a>
+    </section>
+</main>
+</body>
+</html>

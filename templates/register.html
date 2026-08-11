@@ -9,6 +9,7 @@
     <title>Register | EduSphere ERP</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css')}}">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -116,11 +117,29 @@
 
             </div>
 
-            <div class="input-box">
+            <div class="input-box parent-email-field" hidden>
+
+                <i class="fa-solid fa-people-roof"></i>
+
+                <input
+                    type="email"
+                    id="registrationParentEmail"
+                    name="parent_email"
+                    placeholder="Parent Email Address"
+                    disabled>
+
+            </div>
+
+            <div class="input-box department-field" hidden>
 
                 <i class="fa-solid fa-school"></i>
 
-                <input type="text" name="department" placeholder="Department / Class" required>
+                <select id="registrationDepartment" name="department" disabled>
+                    <option value="">Select Department</option>
+                    {% for department in departments %}
+                    <option value="{{ department.name }}">{{ department.name }}</option>
+                    {% endfor %}
+                </select>
 
             </div>
 

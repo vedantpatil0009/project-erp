@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ section_title }} | EduSphere ERP</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
@@ -38,10 +39,37 @@
             <i class="fa-solid {{ section_icon }}"></i>
             <div><h3>{{ section_title }}</h3><p>Student Services</p></div>
         </div>
-        <div class="empty-state">
-            <i class="fa-solid {{ section_icon }}"></i>
-            <p>{{ empty_message }}</p>
-        </div>
+        {% if show_subject_filter %}
+            <form class="subject-filter" method="GET" action="{{ url_for(section_endpoint) }}">
+                <label for="subject">Subject</label>
+                <select id="subject" name="subject" onchange="this.form.submit()">
+                    <option value="">All Subjects</option>
+                    {% for subject in available_subjects %}
+                        <option value="{{ subject }}" {% if subject == selected_subject %}selected{% endif %}>{{ subject }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        {% endif %}
+        {% if academic_materials %}
+            <table>
+                <tr><th>Title</th><th>Subject</th><th>Description</th><th>Teacher</th><th>Uploaded</th><th>File</th></tr>
+                {% for material in academic_materials %}
+                    <tr>
+                        <td>{{ material.title }}</td>
+                        <td>{{ material.subject or 'Not set' }}</td>
+                        <td>{{ material.description or 'No description' }}</td>
+                        <td>{{ material.teacher.full_name }}</td>
+                        <td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td>
+                        <td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid {{ section_icon }}"></i>
+                <p>{{ empty_message }}</p>
+            </div>
+        {% endif %}
     </section>
 </main>
 </body>

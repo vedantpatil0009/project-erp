@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Management | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>
+    <li onclick="window.location.href='{{ url_for('admin') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li class="active"><i class="fa-solid fa-building"></i><span>Departments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>Students</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_teachers') }}'"><i class="fa-solid fa-chalkboard-user"></i><span>Teachers</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_parents') }}'"><i class="fa-solid fa-people-group"></i><span>Parents</span></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main">
+    <div class="topbar"><h2>Department Management</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>Admin</p></div></div></div>
+    {% with messages = get_flashed_messages() %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endwith %}
+    <section class="box full"><h3>Add Department</h3><form method="POST"><input type="hidden" name="action" value="add"><input type="text" name="department_name" maxlength="100" placeholder="Department name" required><button type="submit">Add Department</button></form></section>
+    <section class="box full"><h3>All Departments</h3>{% if departments %}<table><tr><th>Department</th><th>Action</th></tr>{% for department in departments %}<tr><td>{{ department.name }}</td><td><form method="POST"><input type="hidden" name="action" value="remove"><input type="hidden" name="department_id" value="{{ department.id }}"><button type="submit">Remove</button></form></td></tr>{% endfor %}</table>{% else %}<p>No departments available.</p>{% endif %}</section>
+</main>
+</body>
+</html>

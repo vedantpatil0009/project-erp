@@ -360,7 +360,8 @@ table{
     grid-column:1 / -1;
 }
 
-.profile-form input{
+.profile-form input,
+.profile-form select{
     width:100%;
     border:1px solid #d7deed;
     border-radius:6px;
@@ -388,6 +389,27 @@ table{
     text-decoration:none;
 }
 
+.subject-filter{
+    align-items:center;
+    display:flex;
+    flex-direction:row;
+    gap:12px;
+    margin:0 0 20px;
+}
+
+.subject-filter label{
+    color:#666;
+    font-size:14px;
+    font-weight:500;
+}
+
+.subject-filter select{
+    border:1px solid #d7deed;
+    border-radius:6px;
+    font:inherit;
+    padding:10px;
+}
+
 .empty-state{
     border:1px dashed #cbd5e1;
     border-radius:10px;
@@ -400,4 +422,32 @@ table{
     color:#2563eb;
     font-size:32px;
     margin-bottom:12px;
+}
+
+/* Keep wide dashboard tables inside their cards on small screens. */
+.main,
+.box,
+.profile-card{
+    min-width:0;
+}
+
+.box,
+.profile-card{
+    max-width:100%;
+}
+
+@media(max-width:700px){
+    .box,
+    .profile-card{
+        overflow-x:auto;
+    }
+
+    table{
+        min-width:620px;
+    }
+
+    table th,
+    table td{
+        white-space:nowrap;
+    }
 }

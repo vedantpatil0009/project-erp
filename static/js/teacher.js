@@ -119,7 +119,7 @@ rows.forEach((row,index)=>{
 
         row.addEventListener("mouseenter",()=>{
 
-            row.style.background="#e6fffb";
+            row.style.background="#B0E0E6";
 
         });
 

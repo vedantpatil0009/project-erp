@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section_title }} | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parent.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body>
+<div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>
+    <li onclick="window.location.href='{{ url_for('parent') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>My Students</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_results') }}'"><i class="fa-solid fa-square-poll-vertical"></i><span>Results</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_calendar') }}'"><i class="fa-solid fa-calendar-week"></i><span>Academic Calendar</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main">
+    <div class="topbar"><h2>{{ section_title }}</h2></div>
+    <section class="box full">
+        <h3>{{ section_title }}</h3>
+        {% if connected_students %}
+            <form method="GET">
+                <label for="student_id">Student</label>
+                <select id="student_id" name="student_id" onchange="this.form.submit()">
+                    {% for student_user, student_profile in connected_students %}
+                    <option value="{{ student_user.id }}" {% if selected_student and selected_student[0].id == student_user.id %}selected{% endif %}>{{ student_user.full_name }} ({{ student_user.enrollment_no }})</option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% if materials %}
+            <table><tr><th>Title</th><th>Description</th><th>Teacher</th><th>Uploaded</th><th>File</th></tr>{% for material in materials %}<tr><td>{{ material.title }}</td><td>{{ material.description or 'No description' }}</td><td>{{ material.teacher.full_name }}</td><td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td><td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td></tr>{% endfor %}</table>
+            {% else %}<p>{{ empty_message }}</p>{% endif %}
+        {% else %}<p>No data available. Connect a student with a matching parent email to view {{ section_title|lower }}.</p>{% endif %}
+    </section>
+</main>
+</body>
+</html>
