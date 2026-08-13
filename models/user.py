@@ -60,5 +60,9 @@ class User(db.Model):
         nullable=False
     )
 
+    theme = db.Column(db.String(20), nullable=False, default="light", server_default="light")
+    notifications_enabled = db.Column(db.Boolean, nullable=False, default=True, server_default="1")
+    accent_color = db.Column(db.String(20), nullable=False, default="purple", server_default="purple")
+
     def __repr__(self):
         return f"<User {self.full_name}>"

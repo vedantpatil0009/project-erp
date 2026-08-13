@@ -1,5 +1,7 @@
 import os
 import uuid
+import calendar as calendar_module
+from datetime import datetime
 
 from flask import (
     Flask,
@@ -26,6 +28,7 @@ from models.teacher import Teacher
 from models.academic_material import AcademicMaterial
 from models.department import Department
 from models.parent_student_connection import ParentStudentConnection
+from models.weekly_schedule import WeeklySchedule
 
 
 app = Flask(__name__)
@@ -211,6 +214,12 @@ def ensure_user_identifier_columns():
             connection.execute(
                 text("ALTER TABLE users ADD COLUMN phone VARCHAR(20)")
             )
+        if "theme" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN theme VARCHAR(20) DEFAULT 'light'"))
+        if "notifications_enabled" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN notifications_enabled BOOLEAN DEFAULT 1"))
+        if "accent_color" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN accent_color VARCHAR(20) DEFAULT 'purple'"))
 
 
 def ensure_student_profile_columns():
@@ -789,10 +798,49 @@ def student():
             url_for("login")
         )
 
+    assignment_query = AcademicMaterial.query.filter_by(
+        material_type="Assignment",
+        department=student_profile.department,
+    )
+    pending_assignment_count = assignment_query.count()
+    today_schedule = WeeklySchedule.query.filter_by(
+        student_user_id=user.id,
+        day_of_week=datetime.today().weekday(),
+    ).order_by(WeeklySchedule.start_time).all()
+    available_subjects = get_department_subjects(student_profile.department)
+    assignment_query = AcademicMaterial.query.filter_by(
+        material_type="Assignment",
+        department=student_profile.department,
+    )
+    if available_subjects:
+        assignment_query = assignment_query.filter(
+            AcademicMaterial.subject.in_(available_subjects)
+        )
+    recent_assignments = assignment_query.order_by(
+        AcademicMaterial.uploaded_at.desc()
+    ).limit(5).all()
+    calendar_events = AcademicMaterial.query.filter_by(
+        material_type="Academic Calendar",
+        department=student_profile.department,
+    ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+    today = datetime.today()
+
     return render_template(
         "student.html",
         current_user=user,
         student_profile=student_profile,
+        pending_assignment_count=pending_assignment_count,
+        attendance_percentage=None,
+        overall_gpa=None,
+        attendance_overview=[],
+        grades_overview=[],
+        today_schedule=today_schedule,
+        recent_assignments=recent_assignments,
+        calendar_events=calendar_events,
+        calendar_year=today.year,
+        calendar_month=today.strftime("%B"),
+        month_grid=calendar_module.monthcalendar(today.year, today.month),
+        today_day=today.day,
         active_page="dashboard"
     )
 
@@ -878,9 +926,27 @@ def student_materials():
     return render_student_section("materials")
 
 
-@app.route("/student/timetable")
+@app.route("/student/timetable", methods=["GET", "POST"])
 def student_timetable():
-    return render_student_section("timetable")
+    user, profile = get_current_student_profile()
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        values = {key: request.form.get(key, "").strip() for key in ("day_of_week", "start_time", "end_time", "subject", "room", "teacher", "class_type")}
+        try:
+            day = int(values["day_of_week"])
+        except ValueError:
+            day = -1
+        if not 0 <= day <= 6 or not values["start_time"] or not values["end_time"] or not values["subject"]:
+            flash("Day, time, and subject are required.")
+            return redirect(url_for("student_timetable"))
+        db.session.add(WeeklySchedule(student_user_id=user.id, day_of_week=day, **{key: values[key] for key in values if key != "day_of_week"}))
+        db.session.commit()
+        flash("Schedule saved successfully.")
+        return redirect(url_for("student_timetable"))
+    schedules = WeeklySchedule.query.filter_by(student_user_id=user.id).order_by(WeeklySchedule.day_of_week, WeeklySchedule.start_time).all()
+    return render_template("student_timetable.html", current_user=user, student_profile=profile, schedules=schedules, active_page="timetable")
 
 
 @app.route("/student/calendar")
@@ -915,7 +981,49 @@ def student_notices():
 
 @app.route("/student/settings")
 def student_settings():
-    return render_student_section("settings")
+    return redirect(url_for("settings"))
+
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    role = session.get("role")
+    user = get_current_user_for_role(role) if role in ROLE_DASHBOARD_ENDPOINTS else None
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "preferences":
+            user.theme = request.form.get("theme", "light") if request.form.get("theme") in {"light", "dark"} else "light"
+            user.notifications_enabled = request.form.get("notifications_enabled") == "on"
+            user.accent_color = request.form.get("accent_color", "purple") if request.form.get("accent_color") in {"purple", "blue", "green"} else "purple"
+            db.session.commit()
+            flash("Settings saved successfully.")
+        elif action == "password":
+            current_password = request.form.get("current_password", "")
+            new_password = request.form.get("new_password", "")
+            confirm_password = request.form.get("confirm_password", "")
+            if not bcrypt.check_password_hash(user.password, current_password):
+                flash("Current password is incorrect.")
+            elif not new_password:
+                flash("New password is required.")
+            elif new_password != confirm_password:
+                flash("New passwords do not match.")
+            else:
+                user.password = bcrypt.generate_password_hash(new_password).decode("utf-8")
+                db.session.commit()
+                flash("Password changed successfully.")
+        return redirect(url_for("settings"))
+
+    return render_template("settings.html", current_user=user, role=role, dashboard_endpoint=ROLE_DASHBOARD_ENDPOINTS[role])
+
+
+@app.route("/teacher/settings")
+@app.route("/parent/settings")
+@app.route("/admin/settings")
+def role_settings():
+    return redirect(url_for("settings"))
 
 
 # ==========================================

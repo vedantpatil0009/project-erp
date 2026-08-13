@@ -9,13 +9,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
-<body>
+<body class="student-profile-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
 <div class="sidebar">
-    <div class="logo"><h2>EduSphere</h2></div>
+    <div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Student Portal</small></div>
     <ul>
-        <li onclick="window.location.href='{{ url_for('student') }}'">
-            <i class="fa-solid fa-house"></i><span>Dashboard</span>
-        </li>
+        <li onclick="window.location.href='{{ url_for('student') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+        <li onclick="window.location.href='{{ url_for('student_library') }}'"><i class="fa-solid fa-book-open"></i><span>My Courses</span></li>
+        <li onclick="window.location.href='{{ url_for('student_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+        <li onclick="window.location.href='{{ url_for('student_results') }}'"><i class="fa-solid fa-chart-simple"></i><span>Grades</span></li>
+        <li onclick="window.location.href='{{ url_for('student_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
+        <li onclick="window.location.href='{{ url_for('student_timetable') }}'"><i class="fa-solid fa-calendar-days"></i><span>Timetable</span></li>
+        <li onclick="window.location.href='{{ url_for('student_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Materials</span></li>
+        <li onclick="window.location.href='{{ url_for('student_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+        <li onclick="window.location.href='{{ url_for('student_settings') }}'"><i class="fa-solid fa-gear"></i><span>Settings</span></li>
         <li class="sidebar-profile active">
             <i class="fa-solid fa-circle-user"></i>
             <div class="sidebar-profile-details">
@@ -38,7 +44,6 @@
 
     <section class="profile-card">
         <div class="profile-heading">
-            <i class="fa-solid fa-circle-user"></i>
             <div><h3>{{ current_user.full_name }}</h3><p>Student Profile</p></div>
         </div>
         <div class="profile-details">

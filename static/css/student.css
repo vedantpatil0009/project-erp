@@ -451,3 +451,238 @@ table{
         white-space:nowrap;
     }
 }
+
+/* Student portal dashboard theme */
+body{
+    background:#f8f9fd;
+    color:#17172b;
+}
+.sidebar{
+    width:245px;
+    background:#fff;
+    color:#17172b;
+    border-right:1px solid #edf0f7;
+    box-shadow:4px 0 20px rgba(44,34,90,.03);
+    overflow-y:auto;
+}
+.logo{
+    text-align:left;
+    padding:28px 20px 24px;
+    border-bottom:0;
+    color:#17172b;
+    line-height:1.1;
+}
+.logo h2{font-size:20px;letter-spacing:-.4px}
+.logo h2 span{color:#6338e8}
+.logo small{display:block;color:#4f5275;font-size:12px;margin-top:6px;font-weight:400}
+.sidebar ul{padding:12px 14px}
+.sidebar ul li{gap:16px;padding:13px 15px;margin:4px 0;border-radius:10px;color:#252744;font-size:14px}
+.sidebar ul li:hover,.sidebar ul li.active{background:linear-gradient(100deg,#6132e8,#9873ee);color:#fff}
+.sidebar ul li i{width:22px;text-align:center;color:#5d638b}
+.sidebar ul li:hover i,.sidebar ul li.active i{color:#fff}
+.sidebar-profile{margin-top:18px!important;border-top:1px solid #edf0f7;padding-top:18px!important;border-radius:0!important}
+.sidebar-profile-details small{color:#777c9e}
+.sidebar ul li:hover .sidebar-profile-details small,.sidebar ul li.active .sidebar-profile-details small{color:rgba(255,255,255,.8)}
+.main{margin-left:245px;width:calc(100% - 245px);padding:28px 30px 40px;max-width:1500px}
+.topbar{margin-bottom:28px;align-items:flex-start}
+.topbar h1{font-size:30px;letter-spacing:-1px;margin-bottom:5px}
+.topbar h1 span{color:#6338e8}
+.topbar>div>p{color:#535779;font-size:14px}
+.topbar-actions{display:flex;align-items:center;gap:18px}
+.search{height:52px;width:min(530px,42vw);display:flex;align-items:center;gap:15px;border:1px solid #dde1ee;border-radius:12px;padding:0 18px;background:#fff;color:#5b6083;font-size:14px}
+.search input{border:0;outline:0;background:transparent;color:#252744;font:inherit;width:100%;min-width:0}.search input::placeholder{color:#5b6083;opacity:1}
+.search i{font-size:18px}.notification{width:52px;height:52px;border:1px solid #dde1ee;border-radius:12px;background:#fff;display:grid;place-items:center;color:#5d38d8;font-size:20px}
+.cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:18px}
+.card{border:1px solid #eceef6;border-radius:14px;box-shadow:0 4px 18px rgba(50,42,100,.04);padding:21px;text-align:left;min-height:145px}
+.card:hover{transform:translateY(-3px)}
+.card-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:9px;background:#e8f8ed;color:#23ad65;margin-bottom:12px}.card-icon.purple{background:#f0eafd;color:#6338e8}.card-icon.blue{background:#e8f1ff;color:#2878e8}
+.stat-indicator{display:flex;align-items:flex-end;gap:4px;height:24px;margin:5px 0 4px}.stat-indicator span{display:block;width:5px;border-radius:4px;background:#dce3e1}.stat-indicator span:nth-child(1){height:9px}.stat-indicator span:nth-child(2){height:15px}.stat-indicator span:nth-child(3){height:12px}.stat-indicator span:nth-child(4){height:19px}.stat-indicator span:nth-child(5){height:13px}
+.stat-card h3{font-size:14px;color:#252744;margin:0 0 7px}.stat-card h1{font-size:28px;color:#17172b;margin:0 0 4px}.stat-card p{font-size:12px;color:#596080}
+.dashboard-grid{display:grid;grid-template-columns:1.45fr .8fr;gap:16px;margin-bottom:16px}
+.box{border:1px solid #eceef6;border-radius:14px;box-shadow:0 4px 18px rgba(50,42,100,.04);padding:21px;background:#fff}
+.box h3{color:#17172b;margin-bottom:0;font-size:16px}.section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.section-heading span,.section-heading a{color:#6338e8;font-size:12px;text-decoration:none}
+.overview{min-height:245px}.overview-placeholder{height:175px;display:grid;place-content:center;text-align:center;color:#777c9e;background:linear-gradient(180deg,#fbfbfe,#f7f5ff);border-radius:10px}.overview-placeholder i{font-size:30px;color:#7b58e8;margin-bottom:9px}.overview-placeholder p{font-size:13px}
+.overview-grid{grid-template-columns:1fr 1fr .75fr}.overview-chart{height:175px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:12px 8px 0;border-bottom:1px solid #edf0f7;background:linear-gradient(180deg,#fbfbfe,#f7f5ff);border-radius:10px}.chart-column{height:100%;display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}.chart-column span{display:block;width:18px;min-height:3px;background:linear-gradient(180deg,#39c578,#8ee2ae);border-radius:7px 7px 0 0}.chart-column small{font-size:10px;color:#777c9e}.grades-chart{height:175px;display:flex;flex-direction:column;justify-content:center;gap:17px}.grade-row{display:grid;grid-template-columns:80px 1fr 40px;align-items:center;gap:9px;font-size:12px;color:#535779}.grade-row>div{height:9px;background:#eef0f8;border-radius:10px;overflow:hidden}.grade-row>div span{display:block;height:100%;background:linear-gradient(90deg,#6338e8,#9b7cf0);border-radius:10px}.grade-row strong{font-size:12px;color:#252744;text-align:right}
+.profile-summary{min-height:245px}.profile-summary-details{display:grid;gap:11px;margin-top:24px}.profile-summary-details small{display:block;color:#777c9e;font-size:11px;margin-bottom:3px}.profile-summary-details strong{display:block;font-size:13px;overflow-wrap:anywhere}.profile-button{border:1px solid #b9a2ff;border-radius:7px;padding:7px 12px;color:#6338e8!important;font-size:12px!important;text-decoration:none}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.detail-grid div{background:#fafaff;border-radius:9px;padding:14px}.detail-grid small{display:block;color:#777c9e;font-size:11px;margin-bottom:5px}.detail-grid strong{display:block;font-size:13px;overflow-wrap:anywhere}
+.schedule-box{margin-bottom:16px}.schedule-list{display:grid;gap:0}.schedule-item{display:grid;grid-template-columns:150px 1fr 1fr;gap:15px;align-items:center;padding:14px 0;border-bottom:1px solid #edf0f7}.schedule-item strong{color:#6338e8;font-size:13px}.schedule-item span{font-weight:600;font-size:14px}.schedule-item small{color:#777c9e;font-size:12px}.schedule-empty{height:120px}
+.assignments-box{margin-bottom:16px}.assignment-list{display:grid;gap:0}.assignment-item{display:grid;grid-template-columns:1.5fr .8fr .7fr;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid #edf0f7}.assignment-item strong,.assignment-item span{display:block;font-size:13px;color:#252744}.assignment-item small{display:block;color:#777c9e;font-size:11px;margin-top:4px}.assignment-empty{height:120px}
+.main>.schedule-box,.main>.assignments-box{display:inline-block;vertical-align:top;width:calc(50% - 16px);height:320px;min-height:320px;overflow:auto}.main>.schedule-box{margin:24px 16px 16px 0}.main>.assignments-box{margin-top:24px}
+.links-calendar-grid{grid-template-columns:1.25fr .9fr;margin-bottom:16px}.quick-link-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.quick-link-grid a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:82px;border-radius:10px;background:#fafaff;color:#6338e8;text-decoration:none;font-size:11px;text-align:center}.quick-link-grid a i{font-size:21px}.calendar-weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}.calendar-weekdays{color:#777c9e;font-size:11px;margin-bottom:8px}.calendar-grid span{min-height:27px;padding-top:5px;font-size:12px;border-radius:50%}.calendar-grid .muted{color:#c4c7d4}.calendar-grid .today{background:#6338e8;color:#fff}.calendar-events{display:grid;gap:5px;margin-top:14px;padding-top:10px;border-top:1px solid #edf0f7;font-size:11px;color:#535779}.calendar-events strong{color:#252744}.calendar-empty{color:#777c9e;font-size:12px;margin-top:14px}@media(max-width:1000px){.links-calendar-grid{grid-template-columns:1fr}.quick-link-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1200px){.overview-grid{grid-template-columns:1fr 1fr}.overview-grid .profile-summary{grid-column:1 / -1}}
+@media(max-width:1000px){.topbar-actions{width:100%}.search{width:100%}.topbar{flex-direction:column;gap:18px}.cards{grid-template-columns:1fr}.dashboard-grid{grid-template-columns:1fr}.overview-grid .profile-summary{grid-column:auto}.detail-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.sidebar{width:80px}.logo{padding:20px 8px;text-align:center}.logo h2{font-size:14px}.logo small,.sidebar ul li span,.sidebar-profile-details{display:none}.sidebar ul li{justify-content:center;padding:14px 8px}.main{margin-left:80px;width:calc(100% - 80px)}}
+@media(max-width:900px){.main>.schedule-box,.main>.assignments-box{display:block;width:100%;height:auto;min-height:0;margin:0 0 16px}}
+
+/* Final dashboard polish */
+.main{min-height:100vh}
+.topbar h1{font-weight:600;line-height:1.2}
+.topbar-actions{flex-shrink:0}
+.card,.box,.notification,.search{box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.card,.box{transition:transform .2s ease,box-shadow .2s ease}
+.card:hover,.box:hover{box-shadow:0 9px 22px rgba(50,42,100,.08)}
+.profile-button,.quick-link-grid a{transition:background .2s ease,box-shadow .2s ease,transform .2s ease}
+.profile-button:hover{background:#f3efff;box-shadow:0 3px 8px rgba(99,56,232,.12)}
+.quick-link-grid a:hover{background:#f3efff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(99,56,232,.1)}
+.section-heading{min-height:27px}
+.section-heading h3{letter-spacing:-.15px}
+.schedule-item:last-child,.assignment-item:last-child{border-bottom:0}
+button,.secondary-button{box-shadow:0 3px 8px rgba(37,99,235,.14)}
+@media(max-width:650px){.main{padding:22px 16px 32px}.topbar h1{font-size:25px}.topbar-actions{align-items:stretch;gap:10px}.notification{flex:0 0 48px;width:48px;height:48px}.search{height:48px}.quick-link-grid{grid-template-columns:repeat(2,1fr)}.schedule-item,.assignment-item{grid-template-columns:1fr;gap:5px;padding:13px 0}.detail-grid{grid-template-columns:1fr}.box{padding:18px}}
+
+/* Attendance page-specific dashboard styling */
+.student-section-attendance .main{max-width:1280px}
+.student-section-attendance .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-attendance .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-attendance .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-attendance .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-attendance .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#e8f8ed;color:#23ad65;font-size:20px}
+.student-section-attendance .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-attendance .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-attendance .subject-filter{justify-content:flex-end;margin-bottom:20px}
+.student-section-attendance .subject-filter select{background:#fff;border:1px solid #dfe3ef;border-radius:8px;color:#252744;box-shadow:0 2px 7px rgba(50,42,100,.04)}
+.student-section-attendance table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-attendance table th{background:#f3f8f5;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #dcefe2}
+.student-section-attendance table td{text-align:left;color:#535779}
+.student-section-attendance table tr:hover{background:#fbfefc}
+.student-section-attendance .empty-state{background:linear-gradient(180deg,#fbfefc,#f7fbf8);border-color:#cde8d5;padding:60px 20px}
+.student-section-attendance .empty-state i{color:#23ad65}
+
+/* My Courses page-specific dashboard styling */
+.student-section-library .main{max-width:1280px}
+.student-section-library .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-library .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-library .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-library .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-library .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#f0eafd;color:#6338e8;font-size:20px}
+.student-section-library .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-library .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-library .subject-filter{justify-content:flex-end;margin-bottom:20px}
+.student-section-library .subject-filter select{background:#fff;border:1px solid #dfe3ef;border-radius:8px;color:#252744;box-shadow:0 2px 7px rgba(50,42,100,.04)}
+.student-section-library table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-library table th{background:#f5f2ff;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #e5ddff}
+.student-section-library table td{text-align:left;color:#535779}
+.student-section-library table tr:hover{background:#fcfbff}
+.student-section-library .secondary-button{background:#f0eafd;color:#6338e8;box-shadow:0 3px 8px rgba(99,56,232,.12)}
+.student-section-library .empty-state{background:linear-gradient(180deg,#fcfbff,#f8f6ff);border-color:#ddd3ff;padding:60px 20px}
+.student-section-library .empty-state i{color:#6338e8}
+
+/* Grades page-specific dashboard styling */
+.student-section-results .main{max-width:1280px}
+.student-section-results .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-results .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-results .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-results .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-results .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#f0eafd;color:#6338e8;font-size:20px}
+.student-section-results .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-results .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-results .subject-filter{justify-content:flex-end;margin-bottom:20px}
+.student-section-results .subject-filter select{background:#fff;border:1px solid #dfe3ef;border-radius:8px;color:#252744;box-shadow:0 2px 7px rgba(50,42,100,.04)}
+.student-section-results table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-results table th{background:#f5f2ff;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #e5ddff}
+.student-section-results table td{text-align:left;color:#535779}
+.student-section-results table tr:hover{background:#fcfbff}
+.student-section-results .secondary-button{background:#f0eafd;color:#6338e8;box-shadow:0 3px 8px rgba(99,56,232,.12)}
+.student-section-results .empty-state{background:linear-gradient(180deg,#fcfbff,#f8f6ff);border-color:#ddd3ff;padding:60px 20px}
+.student-section-results .empty-state i{color:#6338e8}
+
+/* Assignments page-specific dashboard styling */
+.student-section-assignments .main{max-width:1280px}
+.student-section-assignments .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-assignments .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-assignments .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-assignments .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-assignments .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#e8f1ff;color:#2878e8;font-size:20px}
+.student-section-assignments .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-assignments .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-assignments .subject-filter{justify-content:flex-end;margin-bottom:20px}
+.student-section-assignments .subject-filter select{background:#fff;border:1px solid #dfe3ef;border-radius:8px;color:#252744;box-shadow:0 2px 7px rgba(50,42,100,.04)}
+.student-section-assignments table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-assignments table th{background:#eef5ff;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #d8e7ff}
+.student-section-assignments table td{text-align:left;color:#535779}
+.student-section-assignments table tr:hover{background:#fbfdff}
+.student-section-assignments .secondary-button{background:#e8f1ff;color:#2878e8;box-shadow:0 3px 8px rgba(40,120,232,.12)}
+.student-section-assignments .empty-state{background:linear-gradient(180deg,#fbfdff,#f5f9ff);border-color:#cfe1ff;padding:60px 20px}
+.student-section-assignments .empty-state i{color:#2878e8}
+
+/* Timetable page styling, scoped by its existing day selector. */
+body:has(input[name="day_of_week"]) .main{max-width:1280px}
+body:has(input[name="day_of_week"]) .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+body:has(input[name="day_of_week"]) .topbar h1{font-size:27px;color:#17172b;letter-spacing:-.5px}
+body:has(input[name="day_of_week"]) .box{border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+body:has(input[name="day_of_week"]) .box h3{font-size:17px}
+body:has(input[name="day_of_week"]) .profile-form input,body:has(input[name="day_of_week"]) .profile-form select{border:1px solid #dfe3ef;border-radius:8px;background:#fff;box-shadow:0 2px 7px rgba(50,42,100,.035)}
+body:has(input[name="day_of_week"]) table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+body:has(input[name="day_of_week"]) table th{background:#f3f0ff;color:#252744;text-align:left;border-bottom:1px solid #e5ddff}
+body:has(input[name="day_of_week"]) table td{text-align:left;color:#535779}
+body:has(input[name="day_of_week"]) table tr:hover{background:#fcfbff}
+body:has(input[name="day_of_week"]) .empty-state{background:linear-gradient(180deg,#fcfbff,#f8f6ff);border-color:#ddd3ff}
+
+/* Study Materials page-specific dashboard styling */
+.student-section-materials .main{max-width:1280px}
+.student-section-materials .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-materials .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-materials .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-materials .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-materials .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#f0eafd;color:#6338e8;font-size:20px}
+.student-section-materials .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-materials .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-materials .subject-filter{justify-content:flex-end;margin-bottom:20px}
+.student-section-materials .subject-filter select{background:#fff;border:1px solid #dfe3ef;border-radius:8px;color:#252744;box-shadow:0 2px 7px rgba(50,42,100,.04)}
+.student-section-materials table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-materials table th{background:#f5f2ff;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #e5ddff}
+.student-section-materials table td{text-align:left;color:#535779}
+.student-section-materials table tr:hover{background:#fcfbff}
+.student-section-materials .secondary-button{background:#f0eafd;color:#6338e8;box-shadow:0 3px 8px rgba(99,56,232,.12)}
+.student-section-materials .empty-state{background:linear-gradient(180deg,#fcfbff,#f8f6ff);border-color:#ddd3ff;padding:60px 20px}
+.student-section-materials .empty-state i{color:#6338e8}
+
+/* Notices page-specific dashboard styling */
+.student-section-notices .main{max-width:1280px}
+.student-section-notices .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-notices .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-notices .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-notices .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-notices .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#fff5df;color:#e49a18;font-size:20px}
+.student-section-notices .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-notices .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-notices table{border:1px solid #edf0f7;border-radius:10px;overflow:hidden}
+.student-section-notices table th{background:#fff8ea;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #f3dfb4}
+.student-section-notices table td{text-align:left;color:#535779;vertical-align:top}
+.student-section-notices table tr:hover{background:#fffdf8}
+.student-section-notices .secondary-button{background:#fff5df;color:#b87400;box-shadow:0 3px 8px rgba(228,154,24,.12)}
+.student-section-notices .empty-state{background:linear-gradient(180deg,#fffdf8,#fff9ed);border-color:#f1ddb1;padding:60px 20px}
+.student-section-notices .empty-state i{color:#e49a18}
+
+/* Settings page-specific dashboard styling */
+.student-section-settings .main{max-width:1280px}
+.student-section-settings .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-section-settings .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-section-settings .profile-card{max-width:none;width:100%;padding:24px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-section-settings .profile-heading{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #edf0f7}
+.student-section-settings .profile-heading i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#eef0f8;color:#596080;font-size:20px}
+.student-section-settings .profile-heading h3{font-size:18px;color:#17172b}
+.student-section-settings .profile-heading p{color:#777c9e;font-size:12px;margin-top:3px}
+.student-section-settings .empty-state{background:linear-gradient(180deg,#fcfcff,#f6f7fb);border-color:#dfe3ef;padding:60px 20px}
+.student-section-settings .empty-state i{color:#596080}
+
+/* My Profile page-specific dashboard styling */
+.student-profile-page .main{max-width:1280px}
+.student-profile-page .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-profile-page .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-profile-page .profile-card{max-width:none;width:100%;padding:26px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-profile-page .profile-heading{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #edf0f7}
+.student-profile-page .profile-heading h3{font-size:21px;color:#17172b}
+.student-profile-page .profile-heading p{color:#777c9e;font-size:13px;margin-top:4px}
+.student-profile-page .profile-detail{background:#fafaff;border:1px solid #edf0f7;border-radius:10px;padding:16px;box-shadow:0 2px 7px rgba(50,42,100,.025)}
+.student-profile-page .profile-detail span{color:#777c9e;font-size:11px}
+.student-profile-page .profile-detail strong{display:block;color:#252744;font-size:14px;margin-top:5px;overflow-wrap:anywhere}
+.student-profile-page .secondary-button{background:#f0eafd;color:#6338e8;box-shadow:0 3px 8px rgba(99,56,232,.12);margin-right:8px}
+.student-profile-page .secondary-button:hover{background:#e7ddff}
+.student-edit-profile-page .main{max-width:1280px}
+.student-edit-profile-page .topbar{padding-bottom:20px;border-bottom:1px solid #eceef6}
+.student-edit-profile-page .topbar h2{font-size:27px;color:#17172b;letter-spacing:-.5px}
+.student-edit-profile-page .profile-card{max-width:none;width:100%;padding:26px;border:1px solid #eceef6;border-radius:14px;box-shadow:0 5px 16px rgba(50,42,100,.045)}
+.student-edit-profile-page .profile-form input,.student-edit-profile-page .profile-form select{border:1px solid #dfe3ef;border-radius:8px;background:#fff;box-shadow:0 2px 7px rgba(50,42,100,.035)}
+.student-edit-profile-page .profile-form input:focus,.student-edit-profile-page .profile-form select:focus{border-color:#a995ef;box-shadow:0 0 0 3px rgba(99,56,232,.1);outline:0}
+.common-settings-page{background:#f8f9fd}.common-settings-page .main{max-width:1000px}.common-settings-page .settings-card{max-width:760px;margin-bottom:18px}.common-settings-page .settings-card h3{margin-bottom:18px}.common-settings-page .settings-card form{display:grid;gap:14px}.common-settings-page .settings-card label{display:grid;gap:6px;color:#535779;font-size:13px}.common-settings-page .settings-card input,.common-settings-page .settings-card select{border:1px solid #dfe3ef;border-radius:8px;padding:11px;background:#fff;font:inherit;color:#252744}.common-settings-page .settings-toggle{display:flex!important;align-items:center;gap:9px}.common-settings-page .settings-toggle input{width:auto}.common-settings-page button{width:max-content}

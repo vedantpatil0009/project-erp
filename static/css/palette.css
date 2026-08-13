@@ -1,0 +1,20 @@
+/* Shared palette tokens used by dashboard styles. */
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e3a8a;
+    --accent: #6338e8;
+    --surface: #ffffff;
+    --page-background: #f4f7fc;
+    --text: #17172b;
+    --muted-text: #666666;
+}
+
+body.theme-dark{background:#151525!important;color:#f4f3ff!important}
+body.theme-dark .main,body.theme-dark .box,body.theme-dark .card,body.theme-dark .profile-card,body.theme-dark .search,body.theme-dark .notification{background:#202039!important;color:#f4f3ff!important;border-color:#383856!important}
+body.theme-dark .box h3,body.theme-dark .card h1,body.theme-dark .card h3,body.theme-dark .profile-summary-details strong,body.theme-dark .detail-grid strong,body.theme-dark .topbar h1,body.theme-dark .topbar h2{color:#f4f3ff!important}
+body.theme-dark p,body.theme-dark small,body.theme-dark .card p,body.theme-dark .profile-summary-details small,body.theme-dark .detail-grid small{color:#b9bad4!important}
+body.theme-dark input,body.theme-dark select{background:#292943!important;color:#f4f3ff!important;border-color:#484868!important}
+body.accent-blue .sidebar ul li:hover,body.accent-blue .sidebar ul li.active{background:linear-gradient(100deg,#2563eb,#60a5fa)!important}
+body.accent-green .sidebar ul li:hover,body.accent-green .sidebar ul li.active{background:linear-gradient(100deg,#169b62,#55c98a)!important}
+body.accent-blue .topbar h1 span,body.accent-blue .profile-button,body.accent-blue .section-heading a{color:#2563eb!important}
+body.accent-green .topbar h1 span,body.accent-green .profile-button,body.accent-green .section-heading a{color:#169b62!important}
