@@ -7,6 +7,26 @@
 
 const menuItems = document.querySelectorAll(".sidebar ul li");
 
+const teacherSidebar = document.querySelector(".sidebar ul");
+if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-schedule-link]')) {
+    const scheduleItem = document.createElement("li");
+    scheduleItem.setAttribute("data-teacher-schedule-link", "true");
+    scheduleItem.innerHTML = '<i class="fa-solid fa-calendar-days"></i><span>Manage Weekly Schedule</span>';
+    scheduleItem.addEventListener("click", () => { window.location.href = "/teacher/lectures"; });
+    const materialsItem = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Manage Materials");
+    const logoutItem = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Logout");
+    teacherSidebar.insertBefore(scheduleItem, materialsItem || logoutItem || null);
+}
+
+const lectureHeading = document.querySelector(".teacher-lectures .section-heading");
+if (lectureHeading && !lectureHeading.querySelector(".edit-lectures-link")) {
+    const link = document.createElement("a");
+    link.className = "profile-button edit-lectures-link";
+    link.href = "/teacher/lectures";
+    link.textContent = "Edit Lectures";
+    lectureHeading.insertBefore(link, lectureHeading.lastElementChild);
+}
+
 menuItems.forEach(item => {
 
     item.addEventListener("click", () => {

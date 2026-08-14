@@ -48,6 +48,16 @@
                 </select>
             </form>
         {% endif %}
+        {% if active_page == 'notices' and notifications %}
+            <div class="notification-list">
+                {% for notification in notifications %}
+                    <a class="notification-item{% if not notification.read_at %} unread{% endif %}" href="{{ url_for('open_student_notification', notification_id=notification.id) }}">
+                        <span><strong>{{ notification.material_type }}: {{ notification.title }}</strong><small>{{ notification.teacher_name }}{% if notification.subject %} · {{ notification.subject }}{% endif %} · {{ notification.department }}</small></span>
+                        <time datetime="{{ notification.created_at.isoformat() }}">{{ notification.created_at.strftime('%d %b %Y %H:%M') }}</time>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
         {% if academic_materials %}
             <table>
                 <tr><th>Title</th><th>Subject</th><th>Description</th><th>Teacher</th><th>Uploaded</th><th>File</th></tr>

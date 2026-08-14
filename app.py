@@ -29,6 +29,7 @@ from models.academic_material import AcademicMaterial
 from models.department import Department
 from models.parent_student_connection import ParentStudentConnection
 from models.weekly_schedule import WeeklySchedule
+from models.notification import StudentNotification
 
 
 app = Flask(__name__)
@@ -146,6 +147,7 @@ ROLE_NAV_ITEMS = {
         ("teacher_attendance", "Attendance", "fa-user-check"),
         ("teacher_materials", "Study Material", "fa-book"),
         ("teacher_assignments", "Assignments", "fa-file-lines"),
+        ("teacher_lectures", "Manage Weekly Schedule", "fa-calendar-days"),
         ("manage_materials", "Manage Materials", "fa-folder-plus"),
     ],
     "Parent": [
@@ -171,6 +173,7 @@ ROLE_SECTION_CONFIG = {
         "attendance": ("Attendance", "fa-user-check", ["Student", "Subject", "Date", "Status"], "No attendance records are available yet."),
         "materials": ("Study Material", "fa-book", ["Title", "Subject", "Uploaded On"], "You have not uploaded any study material yet."),
         "assignments": ("Assignments", "fa-file-lines", ["Assignment", "Subject", "Due Date", "Status"], "You have not created any assignments yet."),
+        "lectures": ("Weekly Schedule", "fa-calendar-days", [], "No lectures scheduled yet."),
     },
     "Parent": {
         "students": ("My Students", "fa-user-graduate", ["Name", "Enrollment Number", "Department", "Semester", "Division"], "No student is connected to this parent account."),
@@ -262,6 +265,13 @@ def ensure_academic_material_columns():
             connection.execute(
                 text("ALTER TABLE academic_materials ADD COLUMN subject VARCHAR(100)")
             )
+
+
+def ensure_weekly_schedule_columns():
+    columns = {column["name"] for column in inspect(db.engine).get_columns("weekly_schedules")}
+    if "department" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE weekly_schedules ADD COLUMN department VARCHAR(100)"))
 
 
 def seed_departments():
@@ -396,6 +406,37 @@ def get_department_subjects(department):
     return sorted(set(teacher_subjects + material_subjects), key=str.casefold)
 
 
+def create_material_notifications(material):
+    """Notify eligible students once a teacher's material is committed."""
+    teacher = db.session.get(User, material.teacher_user_id)
+    if not teacher:
+        return
+    students = Student.query.join(User, User.id == Student.user_id).filter(
+        User.role == "Student",
+        Student.department == material.department,
+    ).all()
+    for profile in students:
+        subjects = get_department_subjects(profile.department)
+        if material.subject and subjects and material.subject not in subjects:
+            continue
+        exists = StudentNotification.query.filter_by(
+            student_user_id=profile.user_id,
+            material_id=material.id,
+        ).first()
+        if not exists:
+            db.session.add(StudentNotification(
+                student_user_id=profile.user_id,
+                material_id=material.id,
+                material_type=material.material_type,
+                title=material.title,
+                teacher_name=teacher.full_name,
+                subject=material.subject,
+                department=material.department,
+                created_at=material.uploaded_at,
+            ))
+    db.session.commit()
+
+
 def render_student_section(section_name):
     user, student_profile = get_current_student_profile()
     if not user:
@@ -411,6 +452,7 @@ def render_student_section(section_name):
         selected_subject = ""
 
     academic_materials = []
+    notifications = []
     if material_type and student_profile.department:
         material_query = AcademicMaterial.query.filter_by(
             material_type=material_type,
@@ -421,6 +463,10 @@ def render_student_section(section_name):
         academic_materials = material_query.order_by(
             AcademicMaterial.uploaded_at.desc()
         ).all()
+    if section_name == "notices":
+        notifications = StudentNotification.query.filter_by(
+            student_user_id=user.id
+        ).order_by(StudentNotification.created_at.desc()).all()
 
     return render_template(
         "student_section.html",
@@ -428,6 +474,7 @@ def render_student_section(section_name):
         student_profile=student_profile,
         active_page=section_name,
         section_title=title,
+        section_name=section_name,
         section_icon=icon,
         empty_message=empty_message,
         academic_materials=academic_materials,
@@ -435,6 +482,7 @@ def render_student_section(section_name):
         available_subjects=available_subjects,
         selected_subject=selected_subject,
         section_endpoint=f"student_{section_name}",
+        notifications=notifications,
     )
 
 
@@ -453,6 +501,7 @@ def render_role_section(role, section_name, table_rows=None):
         nav_items=ROLE_NAV_ITEMS[role],
         active_endpoint=request.endpoint,
         section_title=title,
+        section_name=section_name,
         section_icon=icon,
         table_headers=headers,
         table_rows=table_rows or [],
@@ -823,6 +872,14 @@ def student():
         material_type="Academic Calendar",
         department=student_profile.department,
     ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+    unread_notification_count = StudentNotification.query.filter_by(
+        student_user_id=user.id,
+    ).filter(StudentNotification.read_at.is_(None)).count()
+    today_lectures = WeeklySchedule.query.filter(
+        WeeklySchedule.day_of_week == datetime.today().weekday(),
+        WeeklySchedule.student_user_id == user.id,
+        func.lower(func.trim(WeeklySchedule.teacher)) == user.full_name.strip().lower(),
+    ).order_by(WeeklySchedule.start_time).all()
     today = datetime.today()
 
     return render_template(
@@ -841,6 +898,8 @@ def student():
         calendar_month=today.strftime("%B"),
         month_grid=calendar_module.monthcalendar(today.year, today.month),
         today_day=today.day,
+        unread_notification_count=unread_notification_count,
+        today_lectures=today_lectures,
         active_page="dashboard"
     )
 
@@ -1030,7 +1089,7 @@ def role_settings():
 # TEACHER DASHBOARD
 # ==========================================
 
-@app.route("/teacher")
+@app.route("/teacher", methods=["GET", "POST"])
 def teacher():
     user, teacher_profile = get_current_teacher_profile()
     if not user:
@@ -1039,10 +1098,35 @@ def teacher():
             url_for("login")
         )
 
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        start_time = request.form.get("start_time", "").strip()
+        end_time = request.form.get("end_time", "").strip()
+        if not subject or not start_time or not end_time:
+            flash("Subject, start time, and end time are required.")
+            return redirect(url_for("teacher"))
+        db.session.add(WeeklySchedule(
+            student_user_id=user.id,
+            day_of_week=datetime.today().weekday(),
+            start_time=start_time,
+            end_time=end_time,
+            subject=subject,
+            room=request.form.get("room", "").strip() or None,
+            teacher=user.full_name,
+        ))
+        db.session.commit()
+        flash("Today's lecture added successfully.")
+        return redirect(url_for("teacher"))
+
     return render_template(
         "teacher.html",
         current_user=user,
-        teacher_profile=teacher_profile
+        teacher_profile=teacher_profile,
+        attendance_analytics=[],
+        attendance_summary=None,
+        recent_uploads=AcademicMaterial.query.filter_by(
+            teacher_user_id=user.id
+        ).order_by(AcademicMaterial.uploaded_at.desc()).limit(5).all(),
     )
 
 
@@ -1116,9 +1200,22 @@ def teacher_students():
         return redirect(url_for("login"))
 
     teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
-    profiles = Student.query.filter_by(
-        department=teacher_profile.department
-    ).all() if teacher_profile and teacher_profile.department else []
+    base_query = Student.query.filter_by(department=teacher_profile.department) if teacher_profile and teacher_profile.department else Student.query.filter(Student.id == -1)
+    semester_values = list(range(1, 9))
+    department_values = [department.name for department in Department.query.order_by(Department.name).all()]
+    selected_semester = request.args.get("semester", "").strip()
+    selected_department = request.args.get("department", "").strip()
+    if selected_semester and selected_semester.isdigit():
+        base_query = base_query.filter(Student.semester == int(selected_semester))
+    else:
+        selected_semester = ""
+    if selected_department in department_values:
+        base_query = Student.query.filter(Student.department == selected_department)
+        if selected_semester:
+            base_query = base_query.filter(Student.semester == int(selected_semester))
+    else:
+        selected_department = ""
+    profiles = base_query.all()
     rows = []
     for profile in profiles:
         student_user = db.session.get(User, profile.user_id)
@@ -1129,7 +1226,7 @@ def teacher_students():
                 profile.department or "Not available",
                 profile.semester or "Not available",
             ])
-    return render_role_section("Teacher", "students", rows)
+    return render_template("dashboard_section.html", current_user=user, role="Teacher", css_file="css/teacher.css", nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint=request.endpoint, section_title="Students", section_name="students", section_icon="fa-users", table_headers=ROLE_SECTION_CONFIG["Teacher"]["students"][2], table_rows=rows, empty_message=ROLE_SECTION_CONFIG["Teacher"]["students"][3], student_semesters=semester_values, student_departments=department_values, selected_semester=selected_semester, selected_department=selected_department)
 
 
 @app.route("/teacher/attendance")
@@ -1239,6 +1336,7 @@ def manage_materials():
         try:
             db.session.add(material)
             db.session.commit()
+            create_material_notifications(material)
         except Exception:
             db.session.rollback()
             if saved_path and os.path.exists(saved_path):
@@ -1298,6 +1396,64 @@ def download_material(material_id):
         as_attachment=True,
         download_name=material.original_filename,
     )
+
+
+@app.route("/teacher/lectures", methods=["GET", "POST"])
+def teacher_lectures():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        action = request.form.get("action", "add")
+        if action == "delete":
+            lecture = WeeklySchedule.query.filter_by(id=request.form.get("lecture_id", type=int), student_user_id=user.id).first_or_404()
+            db.session.delete(lecture)
+            db.session.commit()
+            flash("Lecture deleted successfully.")
+            return redirect(url_for("teacher_lectures"))
+        lecture = WeeklySchedule.query.filter_by(id=request.form.get("lecture_id", type=int), student_user_id=user.id).first() if action == "update" else None
+        if lecture is None:
+            lecture = WeeklySchedule(student_user_id=user.id, teacher=user.full_name)
+            db.session.add(lecture)
+        lecture.day_of_week = request.form.get("day_of_week", type=int)
+        lecture.subject = request.form.get("subject", "").strip()
+        lecture.department = request.form.get("department", "").strip() or None
+        lecture.start_time = request.form.get("start_time", "").strip()
+        lecture.end_time = request.form.get("end_time", "").strip()
+        lecture.room = request.form.get("room", "").strip() or None
+        if lecture.day_of_week is None or not lecture.subject or not lecture.start_time or not lecture.end_time:
+            flash("Day, subject, start time, and end time are required.")
+            return redirect(url_for("teacher_lectures"))
+        db.session.commit()
+        flash("Lecture saved successfully.")
+        return redirect(url_for("teacher_lectures"))
+    lectures = WeeklySchedule.query.filter_by(
+        student_user_id=user.id, teacher=user.full_name,
+    ).order_by(WeeklySchedule.day_of_week, WeeklySchedule.start_time).all()
+    return render_template("dashboard_section.html", current_user=user, role="Teacher", css_file="css/teacher.css", nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint="teacher_lectures", section_title="Weekly Schedule", section_name="lectures", section_icon="fa-calendar-days", table_headers=[], table_rows=[], empty_message="No lectures scheduled yet.", schedules=lectures)
+
+
+@app.route("/student/notifications/<int:notification_id>")
+def open_student_notification(notification_id):
+    user = get_current_user_for_role("Student")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    notification = StudentNotification.query.filter_by(
+        id=notification_id, student_user_id=user.id
+    ).first_or_404()
+    notification.read_at = datetime.utcnow()
+    db.session.commit()
+    material = db.session.get(AcademicMaterial, notification.material_id)
+    if material and material.stored_filename:
+        return redirect(url_for("download_material", material_id=material.id))
+    section = {
+        "Assignment": "student_assignments", "Study Material": "student_materials",
+        "Notice": "student_notices", "Academic Calendar": "student_calendar",
+        "Attendance": "student_attendance", "Result": "student_results",
+        "Timetable": "student_timetable",
+    }.get(notification.material_type, "student_notices")
+    return redirect(url_for(section))
 
 
 # ==========================================
@@ -1572,6 +1728,7 @@ with app.app_context():
     ensure_student_profile_columns()
     ensure_teacher_profile_columns()
     ensure_academic_material_columns()
+    ensure_weekly_schedule_columns()
     seed_departments()
 
 

@@ -10,6 +10,7 @@ class WeeklySchedule(db.Model):
     start_time = db.Column(db.String(5), nullable=False)
     end_time = db.Column(db.String(5), nullable=False)
     subject = db.Column(db.String(100), nullable=False)
+    department = db.Column(db.String(100), nullable=True)
     room = db.Column(db.String(100), nullable=True)
     teacher = db.Column(db.String(100), nullable=True)
     class_type = db.Column(db.String(50), nullable=True)

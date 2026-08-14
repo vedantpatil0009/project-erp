@@ -491,7 +491,7 @@ body{
 .topbar-actions{display:flex;align-items:center;gap:18px}
 .search{height:52px;width:min(530px,42vw);display:flex;align-items:center;gap:15px;border:1px solid #dde1ee;border-radius:12px;padding:0 18px;background:#fff;color:#5b6083;font-size:14px}
 .search input{border:0;outline:0;background:transparent;color:#252744;font:inherit;width:100%;min-width:0}.search input::placeholder{color:#5b6083;opacity:1}
-.search i{font-size:18px}.notification{width:52px;height:52px;border:1px solid #dde1ee;border-radius:12px;background:#fff;display:grid;place-items:center;color:#5d38d8;font-size:20px}
+.search i{font-size:18px}.notification{position:relative;width:52px;height:52px;border:1px solid #dde1ee;border-radius:12px;background:#fff;display:grid;place-items:center;color:#5d38d8;font-size:20px}.notification-badge{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#e5485d;color:#fff;border:2px solid #f8f9fd;font-size:10px;font-weight:600;line-height:15px;text-align:center}
 .cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:18px}
 .card{border:1px solid #eceef6;border-radius:14px;box-shadow:0 4px 18px rgba(50,42,100,.04);padding:21px;text-align:left;min-height:145px}
 .card:hover{transform:translateY(-3px)}
@@ -523,6 +523,7 @@ body{
 .card:hover,.box:hover{box-shadow:0 9px 22px rgba(50,42,100,.08)}
 .profile-button,.quick-link-grid a{transition:background .2s ease,box-shadow .2s ease,transform .2s ease}
 .profile-button:hover{background:#f3efff;box-shadow:0 3px 8px rgba(99,56,232,.12)}
+.notification-list{display:grid;gap:10px;margin-bottom:18px}.notification-item{display:flex;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid #eceef6;border-radius:10px;text-decoration:none;color:#17172b;background:#fff}.notification-item small{display:block;color:#777c9e;font-size:11px;margin-top:4px}.notification-item time{color:#777c9e;font-size:11px;white-space:nowrap}.notification-item.unread{border-left:3px solid #6338e8;background:#faf9ff}.notification-item.unread strong:after{content:' •';color:#6338e8}
 .quick-link-grid a:hover{background:#f3efff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(99,56,232,.1)}
 .section-heading{min-height:27px}
 .section-heading h3{letter-spacing:-.15px}
