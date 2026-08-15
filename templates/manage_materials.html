@@ -23,6 +23,7 @@
     <main class="main">
         <div class="topbar"><h2>Manage Materials</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>{{ teacher_profile.department }}</p></div></div></div>
         {% with messages = get_flashed_messages() %}{% for message in messages %}<div class="material-alert">{{ message }}</div>{% endfor %}{% endwith %}
+        <section class="box full teacher-results-panel"><h3>Results</h3><form class="teacher-result-filters" method="GET"><label>Department<select name="result_department"><option value="">Select Department</option>{% for department in result_departments %}<option value="{{ department }}" {% if result_department == department %}selected{% endif %}>{{ department }}</option>{% endfor %}</select></label><label>Semester<select name="result_semester"><option value="">All Semesters</option>{% for semester in result_semesters %}<option value="{{ semester }}" {% if result_semester == semester|string %}selected{% endif %}>Semester {{ semester }}</option>{% endfor %}</select></label><label>Division<select name="result_division"><option value="">All Divisions</option>{% for division in result_divisions %}<option value="{{ division }}" {% if result_division == division %}selected{% endif %}>{{ division }}</option>{% endfor %}</select></label><label>Subject<select name="result_subject"><option value="">Select Subject</option>{% for subject in result_subjects %}<option value="{{ subject }}" {% if result_subject == subject %}selected{% endif %}>{{ subject }}</option>{% endfor %}</select></label><label>Exam/Assessment<input name="result_exam" value="{{ result_exam }}" placeholder="e.g. Midterm"></label><button type="submit">Show Students</button></form>{% if result_department or result_semester or result_division or result_subject or result_exam %}<table class="teacher-results-table"><tr><th>Student Name</th><th>Enrollment No</th><th>Marks/Grade</th></tr>{% for profile, student_user in result_students %}{% if student_user %}<tr><td>{{ student_user.full_name }}</td><td>{{ student_user.enrollment_no or 'Not available' }}</td><td><input class="result-entry" placeholder="Enter marks/grade" disabled></td></tr>{% endif %}{% else %}<tr><td colspan="3">No students match the selected filters.</td></tr>{% endfor %}</table>{% else %}<p class="result-filter-hint">Select filters to display students for result entry.</p>{% endif %}</section>
         <section class="box full"><h3>Add Academic Material</h3>
             <form class="material-form" method="POST" enctype="multipart/form-data">
                 <label>Material Type<select id="material_type" name="material_type" required><option value="">Select type</option>{% for material_type in material_types %}<option value="{{ material_type }}">{{ material_type }}</option>{% endfor %}</select></label>
@@ -34,7 +35,7 @@
             </form>
         </section>
         <section class="box full"><h3>My Uploaded Materials</h3>{% if materials %}
-            <table><tr><th>Type</th><th>Title</th><th>Department</th><th>Uploaded</th><th>File</th></tr>{% for material in materials %}<tr><td>{{ material.material_type }}</td><td>{{ material.title }}</td><td>{{ material.department }}</td><td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td><td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td></tr>{% endfor %}</table>
+            <table><tr><th>Type</th><th>Title</th><th>Department</th><th>Uploaded</th><th>File</th><th>Action</th></tr>{% for material in materials %}<tr><td>{{ material.material_type }}</td><td>{{ material.title }}</td><td>{{ material.department }}</td><td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td><td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td><td><form method="POST" onsubmit="return confirm('Delete this uploaded material?');"><input type="hidden" name="action" value="delete_material"><input type="hidden" name="material_id" value="{{ material.id }}"><button type="submit" class="secondary-button material-delete-button">Delete</button></form></td></tr>{% endfor %}</table>
         {% else %}<p>No materials uploaded yet.</p>{% endif %}</section>
     </main>
     <script>
@@ -84,6 +85,30 @@
 
         typeField.addEventListener("change", updateMaterialFields);
         updateMaterialFields();
+        const resultsTable = document.querySelector(".teacher-results-table");
+        if (resultsTable) {
+            const resultForm = document.createElement("form");
+            resultForm.method = "POST";
+            resultForm.className = "teacher-results-save-form";
+            resultForm.innerHTML = '<input type="hidden" name="action" value="save_results"><input type="hidden" name="result_subject"><input type="hidden" name="result_exam"><label class="out-of-marks-label">Out of Marks<input type="number" name="out_of_marks" min="1" step="0.01" required value="{{ existing_out_of_marks or '' }}"></label><label class="internal-result-label"><input type="checkbox" name="is_internal" {% if existing_is_internal %}checked{% endif %}> Include in Internal Performance</label>';
+            const params = new URLSearchParams(window.location.search);
+            resultForm.elements.result_subject.value = params.get("result_subject") || "";
+            resultForm.elements.result_exam.value = params.get("result_exam") || "";
+            const resultStudentIds = [{% for profile, student_user in result_students %}{{ student_user.id }}{% if not loop.last %},{% endif %}{% endfor %}];
+            resultsTable.querySelectorAll("tbody tr, tr").forEach((row, index) => {
+                const input = row.querySelector(".result-entry");
+                const studentId = resultStudentIds[index - 1];
+                if (!input || !studentId) return;
+                input.disabled = false;
+                input.name = "marks_" + studentId;
+            });
+            resultsTable.parentNode.insertBefore(resultForm, resultsTable);
+            resultForm.appendChild(resultsTable);
+            const save = document.createElement("button");
+            save.type = "submit";
+            save.textContent = "Save Results";
+            resultForm.appendChild(save);
+        }
     </script>
 </body>
 </html>

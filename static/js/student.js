@@ -2,6 +2,16 @@
 
 const menuItems = document.querySelectorAll(".sidebar ul li");
 
+const studentSidebar = document.querySelector(".sidebar ul");
+if (studentSidebar && !studentSidebar.querySelector('[data-final-result-link]')) {
+    const finalResultItem = document.createElement("li");
+    finalResultItem.setAttribute("data-final-result-link", "true");
+    finalResultItem.innerHTML = '<i class="fa-solid fa-file-certificate"></i><span>Final Result</span>';
+    finalResultItem.addEventListener("click", () => { window.location.href = "/student/final-results"; });
+    const settingsItem = Array.from(studentSidebar.children).find(item => item.textContent.trim() === "Settings");
+    studentSidebar.insertBefore(finalResultItem, settingsItem || null);
+}
+
 menuItems.forEach(item => {
     item.addEventListener("click", () => {
 

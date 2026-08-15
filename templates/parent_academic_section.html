@@ -9,14 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
-<body>
-<div class="sidebar"><div class="logo"><h2>EduSphere</h2></div><ul>
+<body class="parent-dashboard-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Parent Portal</small></div><ul>
     <li onclick="window.location.href='{{ url_for('parent') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
     <li onclick="window.location.href='{{ url_for('parent_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>My Students</span></li>
-    <li onclick="window.location.href='{{ url_for('parent_results') }}'"><i class="fa-solid fa-square-poll-vertical"></i><span>Results</span></li>
-    <li onclick="window.location.href='{{ url_for('parent_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
-    <li onclick="window.location.href='{{ url_for('parent_calendar') }}'"><i class="fa-solid fa-calendar-week"></i><span>Academic Calendar</span></li>
-    <li onclick="window.location.href='{{ url_for('parent_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+    <li class="{% if section_title == 'Results' %}active{% endif %}" onclick="window.location.href='{{ url_for('parent_results') }}'"><i class="fa-solid fa-square-poll-vertical"></i><span>Results</span></li>
+    <li class="{% if section_title == 'Attendance' %}active{% endif %}" onclick="window.location.href='{{ url_for('parent_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+    <li class="{% if section_title == 'Academic Calendar' %}active{% endif %}" onclick="window.location.href='{{ url_for('parent_calendar') }}'"><i class="fa-solid fa-calendar-week"></i><span>Academic Calendar</span></li>
+    <li class="{% if section_title == 'Notices' %}active{% endif %}" onclick="window.location.href='{{ url_for('parent_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+    <li class="sidebar-profile" onclick="window.location.href='{{ url_for('parent_profile') }}'"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.parent_id or 'Parent ID unavailable' }}</small></div></li>
     <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
 </ul></div>
 <main class="main">
@@ -24,15 +25,17 @@
     <section class="box full">
         <h3>{{ section_title }}</h3>
         {% if connected_students %}
-            <form method="GET">
+            {% if section_title != 'Notices' %}<form method="GET" class="parent-student-filter">
                 <label for="student_id">Student</label>
                 <select id="student_id" name="student_id" onchange="this.form.submit()">
                     {% for student_user, student_profile in connected_students %}
                     <option value="{{ student_user.id }}" {% if selected_student and selected_student[0].id == student_user.id %}selected{% endif %}>{{ student_user.full_name }} ({{ student_user.enrollment_no }})</option>
                     {% endfor %}
                 </select>
-            </form>
-            {% if materials %}
+            </form>{% endif %}
+            {% if section_title == 'Results' %}{% if student_results %}<table><tr><th>Subject</th><th>Exam</th><th>Marks / Out of Marks</th><th>Percentage</th><th>Teacher</th><th>Updated</th></tr>{% for result in student_results %}<tr><td>{{ result.subject }}</td><td>{{ result.exam }}</td><td>{{ result.marks_grade }} / {{ result.out_of_marks|int if result.out_of_marks == result.out_of_marks|int else result.out_of_marks }}</td><td>{% if result.out_of_marks and result.out_of_marks > 0 %}{{ ((result.marks_grade|float / result.out_of_marks) * 100)|round(2) }}%{% else %}Not available{% endif %}</td><td>{{ result.teacher.full_name if result.teacher else 'Not available' }}</td><td>{{ result.updated_at.strftime('%d %b %Y') }}</td></tr>{% endfor %}</table>{% else %}<p>No result records available.</p>{% endif %}
+            {% elif section_title == 'Notices' %}{% if notifications %}<div class="parent-notification-list">{% for notification in notifications %}<article class="parent-notification-card{% if not notification.read_at %} unread{% endif %}"><div class="parent-notification-icon"><i class="fa-solid fa-bell"></i></div><div class="parent-notification-content"><div class="parent-notification-heading"><h4>{{ notification.title }}</h4><time>{{ notification.created_at.strftime('%d %b %Y %H:%M') }}</time></div><small class="parent-notification-student" id="parent-notification-student-name-{{ notification.id }}">Student: {{ notification.student.full_name if notification.student else 'Connected student' }}</small>{% if notification.material and notification.material.description %}<p>{{ notification.material.description }}</p>{% endif %}<small>{{ notification.material_type }}{% if notification.subject %} · {{ notification.subject }}{% endif %} · {{ notification.department }} · {{ notification.teacher_name }}</small></div></article>{% endfor %}</div>{% else %}<p>{{ empty_message }}</p>{% endif %}
+            {% elif materials %}
             <table><tr><th>Title</th><th>Description</th><th>Teacher</th><th>Uploaded</th><th>File</th></tr>{% for material in materials %}<tr><td>{{ material.title }}</td><td>{{ material.description or 'No description' }}</td><td>{{ material.teacher.full_name }}</td><td>{{ material.uploaded_at.strftime('%d %b %Y') }}</td><td>{% if material.stored_filename %}<a class="secondary-button" href="{{ url_for('download_material', material_id=material.id) }}">Download</a>{% else %}No file{% endif %}</td></tr>{% endfor %}</table>
             {% else %}<p>{{ empty_message }}</p>{% endif %}
         {% else %}<p>No data available. Connect a student with a matching parent email to view {{ section_title|lower }}.</p>{% endif %}

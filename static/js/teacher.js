@@ -8,6 +8,15 @@
 const menuItems = document.querySelectorAll(".sidebar ul li");
 
 const teacherSidebar = document.querySelector(".sidebar ul");
+if (teacherSidebar && !teacherSidebar.querySelector('[data-settings-link]')) {
+    const settingsItem = document.createElement("li");
+    settingsItem.setAttribute("data-settings-link", "true");
+    settingsItem.innerHTML = '<i class="fa-solid fa-gear"></i><span>Settings</span>';
+    settingsItem.addEventListener("click", () => { window.location.href = "/teacher/settings"; });
+    const profile = teacherSidebar.querySelector(".sidebar-profile");
+    const logout = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Logout");
+    teacherSidebar.insertBefore(settingsItem, profile || logout || null);
+}
 if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-schedule-link]')) {
     const scheduleItem = document.createElement("li");
     scheduleItem.setAttribute("data-teacher-schedule-link", "true");

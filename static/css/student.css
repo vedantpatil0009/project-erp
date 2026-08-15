@@ -125,12 +125,16 @@ body{
 }
 
 .card{
+    display:block;
     background:white;
     border-radius:15px;
     padding:25px;
     text-align:center;
     box-shadow:0 5px 20px rgba(0,0,0,.08);
     transition:.3s;
+    color:inherit;
+    text-decoration:none;
+    cursor:pointer;
 }
 
 .card:hover{
@@ -503,6 +507,7 @@ body{
 .box h3{color:#17172b;margin-bottom:0;font-size:16px}.section-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.section-heading span,.section-heading a{color:#6338e8;font-size:12px;text-decoration:none}
 .overview{min-height:245px}.overview-placeholder{height:175px;display:grid;place-content:center;text-align:center;color:#777c9e;background:linear-gradient(180deg,#fbfbfe,#f7f5ff);border-radius:10px}.overview-placeholder i{font-size:30px;color:#7b58e8;margin-bottom:9px}.overview-placeholder p{font-size:13px}
 .overview-grid{grid-template-columns:1fr 1fr .75fr}.overview-chart{height:175px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:12px 8px 0;border-bottom:1px solid #edf0f7;background:linear-gradient(180deg,#fbfbfe,#f7f5ff);border-radius:10px}.chart-column{height:100%;display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}.chart-column span{display:block;width:18px;min-height:3px;background:linear-gradient(180deg,#39c578,#8ee2ae);border-radius:7px 7px 0 0}.chart-column small{font-size:10px;color:#777c9e}.grades-chart{height:175px;display:flex;flex-direction:column;justify-content:center;gap:17px}.grade-row{display:grid;grid-template-columns:80px 1fr 40px;align-items:center;gap:9px;font-size:12px;color:#535779}.grade-row>div{height:9px;background:#eef0f8;border-radius:10px;overflow:hidden}.grade-row>div span{display:block;height:100%;background:linear-gradient(90deg,#6338e8,#9b7cf0);border-radius:10px}.grade-row strong{font-size:12px;color:#252744;text-align:right}
+.recent-results-list{display:flex;flex-direction:column;gap:10px}.recent-result-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid #edf0f7;border-radius:10px;background:#fcfcff}.recent-result-item>div{display:flex;flex-direction:column;gap:3px;min-width:0}.recent-result-item>div:last-child{text-align:right}.recent-result-item strong{font-size:12px;color:#252744;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.recent-result-item span{font-size:12px;font-weight:600;color:#6338e8}.recent-result-item small{font-size:10px;color:#777c9e}
 .profile-summary{min-height:245px}.profile-summary-details{display:grid;gap:11px;margin-top:24px}.profile-summary-details small{display:block;color:#777c9e;font-size:11px;margin-bottom:3px}.profile-summary-details strong{display:block;font-size:13px;overflow-wrap:anywhere}.profile-button{border:1px solid #b9a2ff;border-radius:7px;padding:7px 12px;color:#6338e8!important;font-size:12px!important;text-decoration:none}
 .detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.detail-grid div{background:#fafaff;border-radius:9px;padding:14px}.detail-grid small{display:block;color:#777c9e;font-size:11px;margin-bottom:5px}.detail-grid strong{display:block;font-size:13px;overflow-wrap:anywhere}
 .schedule-box{margin-bottom:16px}.schedule-list{display:grid;gap:0}.schedule-item{display:grid;grid-template-columns:150px 1fr 1fr;gap:15px;align-items:center;padding:14px 0;border-bottom:1px solid #edf0f7}.schedule-item strong{color:#6338e8;font-size:13px}.schedule-item span{font-weight:600;font-size:14px}.schedule-item small{color:#777c9e;font-size:12px}.schedule-empty{height:120px}
@@ -524,12 +529,15 @@ body{
 .profile-button,.quick-link-grid a{transition:background .2s ease,box-shadow .2s ease,transform .2s ease}
 .profile-button:hover{background:#f3efff;box-shadow:0 3px 8px rgba(99,56,232,.12)}
 .notification-list{display:grid;gap:10px;margin-bottom:18px}.notification-item{display:flex;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid #eceef6;border-radius:10px;text-decoration:none;color:#17172b;background:#fff}.notification-item small{display:block;color:#777c9e;font-size:11px;margin-top:4px}.notification-item time{color:#777c9e;font-size:11px;white-space:nowrap}.notification-item.unread{border-left:3px solid #6338e8;background:#faf9ff}.notification-item.unread strong:after{content:' •';color:#6338e8}
+.final-result-documents{display:grid;gap:10px;margin-top:20px}.final-result-document{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px;border:1px solid #eceef6;border-radius:10px}.final-result-document>div{flex:1;min-width:180px}.final-result-document strong,.final-result-document small{display:block}.final-result-document small{color:#777c9e;font-size:11px;margin-top:3px}.final-result-document a,.final-result-document button{padding:7px 11px;border:1px solid #b9a2ff;border-radius:7px;background:#fff;color:#6338e8;text-decoration:none;font-size:11px}.final-result-document form{display:flex;gap:6px;align-items:center}.final-result-document input[type=file]{max-width:180px;font-size:11px}
+.final-result-upload-form{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:16px 0}.final-result-upload-form label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}.final-result-upload-form input[type=file]{padding:9px;border:1px solid #dfe3ef;border-radius:8px;background:#fff}
 .quick-link-grid a:hover{background:#f3efff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(99,56,232,.1)}
 .section-heading{min-height:27px}
 .section-heading h3{letter-spacing:-.15px}
 .schedule-item:last-child,.assignment-item:last-child{border-bottom:0}
 button,.secondary-button{box-shadow:0 3px 8px rgba(37,99,235,.14)}
 @media(max-width:650px){.main{padding:22px 16px 32px}.topbar h1{font-size:25px}.topbar-actions{align-items:stretch;gap:10px}.notification{flex:0 0 48px;width:48px;height:48px}.search{height:48px}.quick-link-grid{grid-template-columns:repeat(2,1fr)}.schedule-item,.assignment-item{grid-template-columns:1fr;gap:5px;padding:13px 0}.detail-grid{grid-template-columns:1fr}.box{padding:18px}}
+@media(max-width:650px){.student-profile-page .profile-actions{flex-direction:column;gap:12px}.student-profile-page .secondary-button{width:100%;margin-right:0;text-align:center}}
 
 /* Attendance page-specific dashboard styling */
 .student-section-attendance .main{max-width:1280px}
@@ -564,9 +572,17 @@ button,.secondary-button{box-shadow:0 3px 8px rgba(37,99,235,.14)}
 .student-section-library table th{background:#f5f2ff;color:#252744;text-align:left;font-weight:600;border-bottom:1px solid #e5ddff}
 .student-section-library table td{text-align:left;color:#535779}
 .student-section-library table tr:hover{background:#fcfbff}
+.student-section-library .course-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.student-section-library .course-card{display:block;overflow:hidden;min-height:210px;padding:0;border:1px solid #eceef6;border-radius:14px;background:#fff;box-shadow:0 5px 16px rgba(50,42,100,.06);transition:transform .18s ease,box-shadow .18s ease}
+.student-section-library .course-card:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(50,42,100,.09)}
+.student-section-library .course-card-banner{height:82px;display:flex;align-items:center;justify-content:center;background-image:linear-gradient(135deg,rgba(99,56,232,.78),rgba(155,124,240,.62)),url('https://wallpapers.com/images/featured/pink-pattern-gu78h95tsnqmkh2q.jpg');background-size:cover;background-position:center;color:#fff;font-size:30px}.student-section-library .course-card-content{padding:16px;min-width:0}.student-section-library .course-card h4{margin:0 0 9px;color:#252744;font-size:15px;font-weight:600;overflow-wrap:anywhere}.student-section-library .course-semester-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#f0eafd;color:#6338e8;font-size:10px;font-weight:600;letter-spacing:.3px}.student-section-library .course-card-teacher{margin:14px 0 0;color:#6338e8;font-size:13px;font-weight:600;overflow-wrap:anywhere}
 .student-section-library .secondary-button{background:#f0eafd;color:#6338e8;box-shadow:0 3px 8px rgba(99,56,232,.12)}
 .student-section-library .empty-state{background:linear-gradient(180deg,#fcfbff,#f8f6ff);border-color:#ddd3ff;padding:60px 20px}
 .student-section-library .empty-state i{color:#6338e8}
+.student-schedule-add{margin-bottom:18px;border:1px solid #e5ddff;border-radius:12px;background:#fcfbff;padding:12px 14px}.student-schedule-add summary{cursor:pointer;color:#6338e8;font-size:13px;font-weight:600}.student-schedule-add form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.student-schedule-add label{display:flex;flex-direction:column;gap:5px;color:#535779;font-size:11px}.student-schedule-add input,.student-schedule-add select{border:1px solid #dfe3ef;border-radius:8px;padding:9px;background:#fff;color:#252744;font:inherit}.student-schedule-add button{grid-column:1/-1;justify-self:start;border:0;border-radius:8px;padding:9px 14px;background:#6338e8;color:#fff;font:inherit;font-size:12px;cursor:pointer}.student-schedule-list{display:grid;gap:0}.student-schedule-row{display:grid;grid-template-columns:1fr 1.5fr auto;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #edf0f7}.student-schedule-row>div{display:flex;flex-direction:column;gap:4px}.student-schedule-row strong{font-size:13px;color:#252744}.student-schedule-row span,.student-schedule-row small{font-size:12px;color:#777c9e}.student-schedule-row .schedule-delete{border:1px solid #e7b9c1;border-radius:7px;background:#fff7f8;color:#b33b4d;padding:7px 10px;font:inherit;font-size:11px;cursor:pointer}
+@media(max-width:1000px){.student-section-library .course-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.student-section-library .course-card-grid{grid-template-columns:1fr}.student-section-library .course-card{min-height:0}.student-section-library .course-card-banner{height:72px}}
+@media(max-width:650px){.student-schedule-add form{grid-template-columns:1fr}.student-schedule-row{grid-template-columns:1fr;gap:8px}.student-schedule-row .schedule-delete{justify-self:start}}
 
 /* Grades page-specific dashboard styling */
 .student-section-results .main{max-width:1280px}

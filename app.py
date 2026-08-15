@@ -30,6 +30,10 @@ from models.department import Department
 from models.parent_student_connection import ParentStudentConnection
 from models.weekly_schedule import WeeklySchedule
 from models.notification import StudentNotification
+from models.student_result import StudentResult
+from models.student_final_result import StudentFinalResult
+from models.subject import Subject
+from models.teacher_subject_assignment import TeacherSubjectAssignment
 
 
 app = Flask(__name__)
@@ -70,8 +74,9 @@ STUDENT_SECTION_CONFIG = {
     "calendar": ("Academic Calendar", "fa-calendar-week", "No academic calendar events are available."),
     "assignments": ("Assignments", "fa-file-lines", "No assignments available yet."),
     "results": ("Results", "fa-square-poll-vertical", "No result records available."),
+    "final_results": ("Final Result", "fa-file-certificate", "No final result documents uploaded."),
     "fees": ("Fees", "fa-wallet", "No fee information available."),
-    "library": ("Library", "fa-book-open-reader", "No library records available."),
+    "library": ("My Courses", "fa-book-open-reader", "No enrolled subjects available."),
     "notices": ("Notices", "fa-bell", "No notices available yet."),
     "settings": ("Settings", "fa-gear", "No student settings are available yet."),
 }
@@ -138,6 +143,8 @@ SUBJECT_FILTER_SECTIONS = {
 MATERIAL_UPLOAD_FOLDER = os.path.join(
     app.root_path, "static", "uploads", "materials"
 )
+FINAL_RESULT_UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads", "final_results")
+FINAL_RESULT_EXTENSIONS = {"pdf", "jpg", "jpeg", "png", "webp"}
 
 ROLE_NAV_ITEMS = {
     "Teacher": [
@@ -149,6 +156,7 @@ ROLE_NAV_ITEMS = {
         ("teacher_assignments", "Assignments", "fa-file-lines"),
         ("teacher_lectures", "Manage Weekly Schedule", "fa-calendar-days"),
         ("manage_materials", "Manage Materials", "fa-folder-plus"),
+        ("teacher_settings", "Settings", "fa-gear"),
     ],
     "Parent": [
         ("parent", "Dashboard", "fa-house"),
@@ -157,13 +165,17 @@ ROLE_NAV_ITEMS = {
         ("parent_attendance", "Attendance", "fa-user-check"),
         ("parent_calendar", "Academic Calendar", "fa-calendar-week"),
         ("parent_notices", "Notices", "fa-bell"),
+        ("parent_settings", "Settings", "fa-gear"),
     ],
     "Admin": [
         ("admin", "Dashboard", "fa-house"),
         ("manage_departments", "Departments", "fa-building"),
+        ("admin_subject_assignments", "Subject Assignments", "fa-book"),
         ("admin_students", "Students", "fa-user-graduate"),
         ("admin_teachers", "Teachers", "fa-chalkboard-user"),
         ("admin_parents", "Parents", "fa-people-group"),
+        ("admin_management", "Admin Management", "fa-user-shield"),
+        ("admin_settings", "Settings", "fa-gear"),
     ],
 }
 
@@ -272,6 +284,25 @@ def ensure_weekly_schedule_columns():
     if "department" not in columns:
         with db.engine.begin() as connection:
             connection.execute(text("ALTER TABLE weekly_schedules ADD COLUMN department VARCHAR(100)"))
+
+
+def ensure_student_result_columns():
+    columns = {column["name"] for column in inspect(db.engine).get_columns("student_results")}
+    if "out_of_marks" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE student_results ADD COLUMN out_of_marks FLOAT NOT NULL DEFAULT 100"))
+    if "is_internal" not in columns:
+        with db.engine.begin() as connection:
+            connection.execute(text("ALTER TABLE student_results ADD COLUMN is_internal BOOLEAN NOT NULL DEFAULT 1"))
+
+
+def ensure_teacher_subject_assignment_columns():
+    columns = {column["name"] for column in inspect(db.engine).get_columns("teacher_subject_assignments")}
+    with db.engine.begin() as connection:
+        if "semester" not in columns:
+            connection.execute(text("ALTER TABLE teacher_subject_assignments ADD COLUMN semester INTEGER"))
+        if "division" not in columns:
+            connection.execute(text("ALTER TABLE teacher_subject_assignments ADD COLUMN division VARCHAR(10)"))
 
 
 def seed_departments():
@@ -406,6 +437,16 @@ def get_department_subjects(department):
     return sorted(set(teacher_subjects + material_subjects), key=str.casefold)
 
 
+def get_student_schedule_for_day(user_id, day_of_week=None):
+    """Return one student's schedule entries for the requested weekday."""
+    if day_of_week is None:
+        day_of_week = datetime.today().weekday()
+    return WeeklySchedule.query.filter(
+        WeeklySchedule.student_user_id == user_id,
+        WeeklySchedule.day_of_week == day_of_week,
+    ).order_by(WeeklySchedule.start_time).all()
+
+
 def create_material_notifications(material):
     """Notify eligible students once a teacher's material is committed."""
     teacher = db.session.get(User, material.teacher_user_id)
@@ -453,6 +494,11 @@ def render_student_section(section_name):
 
     academic_materials = []
     notifications = []
+    student_results = []
+    final_result_documents = []
+    course_rows = []
+    schedules = []
+    internal_average = None
     if material_type and student_profile.department:
         material_query = AcademicMaterial.query.filter_by(
             material_type=material_type,
@@ -467,6 +513,48 @@ def render_student_section(section_name):
         notifications = StudentNotification.query.filter_by(
             student_user_id=user.id
         ).order_by(StudentNotification.created_at.desc()).all()
+    if section_name == "results":
+        student_results = StudentResult.query.filter_by(
+            student_user_id=user.id
+        ).order_by(StudentResult.updated_at.desc()).all()
+        percentages = []
+        for result in student_results:
+            try:
+                if result.is_internal and result.out_of_marks and float(result.out_of_marks) > 0:
+                    percentages.append(float(result.marks_grade) / float(result.out_of_marks) * 100)
+            except (TypeError, ValueError):
+                continue
+        if percentages:
+            internal_average = round(sum(percentages) / len(percentages), 2)
+    if section_name == "final_results":
+        final_result_documents = StudentFinalResult.query.filter_by(student_user_id=user.id).order_by(StudentFinalResult.uploaded_at.desc()).all()
+    if section_name == "library":
+        assignments = TeacherSubjectAssignment.query.join(Subject).join(
+            User, User.id == TeacherSubjectAssignment.teacher_user_id
+        ).filter(
+            Subject.department == student_profile.department,
+            TeacherSubjectAssignment.semester == student_profile.semester,
+            TeacherSubjectAssignment.division == student_profile.division,
+            User.role == "Teacher",
+        ).order_by(Subject.name, User.full_name).all()
+        grouped = {}
+        for assignment in assignments:
+            key = assignment.subject.id
+            course = grouped.setdefault(key, {
+                "subject": assignment.subject.name,
+                "department": assignment.subject.department,
+                "semester": assignment.semester,
+                "teachers": [],
+            })
+            if assignment.teacher and assignment.teacher.full_name not in course["teachers"]:
+                course["teachers"].append(assignment.teacher.full_name)
+        for course in grouped.values():
+            course["teacher"] = ", ".join(course.pop("teachers")) or "Not assigned"
+            course_rows.append(course)
+    if section_name == "timetable":
+        schedules = WeeklySchedule.query.filter_by(
+            student_user_id=user.id
+        ).order_by(WeeklySchedule.day_of_week, WeeklySchedule.start_time).all()
 
     return render_template(
         "student_section.html",
@@ -483,10 +571,15 @@ def render_student_section(section_name):
         selected_subject=selected_subject,
         section_endpoint=f"student_{section_name}",
         notifications=notifications,
+        student_results=student_results,
+        internal_average=internal_average,
+        final_result_documents=final_result_documents,
+        course_rows=course_rows,
+        schedules=schedules,
     )
 
 
-def render_role_section(role, section_name, table_rows=None):
+def render_role_section(role, section_name, table_rows=None, row_ids=None, search_query=""):
     user = get_current_user_for_role(role)
     if not user:
         flash("Access denied!")
@@ -505,6 +598,8 @@ def render_role_section(role, section_name, table_rows=None):
         section_icon=icon,
         table_headers=headers,
         table_rows=table_rows or [],
+        row_ids=row_ids or [],
+        search_query=search_query,
         empty_message=empty_message,
     )
 
@@ -852,10 +947,8 @@ def student():
         department=student_profile.department,
     )
     pending_assignment_count = assignment_query.count()
-    today_schedule = WeeklySchedule.query.filter_by(
-        student_user_id=user.id,
-        day_of_week=datetime.today().weekday(),
-    ).order_by(WeeklySchedule.start_time).all()
+    today = datetime.today()
+    today_schedule = get_student_schedule_for_day(user.id, today.weekday())
     available_subjects = get_department_subjects(student_profile.department)
     assignment_query = AcademicMaterial.query.filter_by(
         material_type="Assignment",
@@ -880,7 +973,30 @@ def student():
         WeeklySchedule.student_user_id == user.id,
         func.lower(func.trim(WeeklySchedule.teacher)) == user.full_name.strip().lower(),
     ).order_by(WeeklySchedule.start_time).all()
-    today = datetime.today()
+    internal_results = StudentResult.query.filter_by(student_user_id=user.id, is_internal=True).all()
+    internal_percentages = []
+    for result in internal_results:
+        try:
+            if result.out_of_marks and float(result.out_of_marks) > 0:
+                internal_percentages.append(float(result.marks_grade) / float(result.out_of_marks) * 100)
+        except (TypeError, ValueError):
+            continue
+    internal_average = round(sum(internal_percentages) / len(internal_percentages), 2) if internal_percentages else None
+    recent_results = []
+    for result in StudentResult.query.filter_by(student_user_id=user.id).order_by(StudentResult.updated_at.desc()).limit(5).all():
+        percentage = None
+        try:
+            if result.out_of_marks and float(result.out_of_marks) > 0:
+                percentage = round(float(result.marks_grade) / float(result.out_of_marks) * 100, 2)
+        except (TypeError, ValueError):
+            pass
+        recent_results.append({
+            "subject": result.subject,
+            "exam": result.exam,
+            "marks": result.marks_grade,
+            "out_of_marks": result.out_of_marks,
+            "percentage": percentage,
+        })
 
     return render_template(
         "student.html",
@@ -888,9 +1004,10 @@ def student():
         student_profile=student_profile,
         pending_assignment_count=pending_assignment_count,
         attendance_percentage=None,
-        overall_gpa=None,
+        overall_gpa=f"{internal_average}%" if internal_average is not None else None,
         attendance_overview=[],
         grades_overview=[],
+        recent_results=recent_results,
         today_schedule=today_schedule,
         recent_assignments=recent_assignments,
         calendar_events=calendar_events,
@@ -992,6 +1109,18 @@ def student_timetable():
         flash("Access denied!")
         return redirect(url_for("login"))
     if request.method == "POST":
+        if request.form.get("action") == "delete":
+            lecture = WeeklySchedule.query.filter_by(
+                id=request.form.get("lecture_id", type=int),
+                student_user_id=user.id,
+            ).first()
+            if not lecture:
+                flash("Schedule entry not found.")
+            else:
+                db.session.delete(lecture)
+                db.session.commit()
+                flash("Lecture removed successfully.")
+            return redirect(url_for("student_timetable"))
         values = {key: request.form.get(key, "").strip() for key in ("day_of_week", "start_time", "end_time", "subject", "room", "teacher", "class_type")}
         try:
             day = int(values["day_of_week"])
@@ -1004,8 +1133,7 @@ def student_timetable():
         db.session.commit()
         flash("Schedule saved successfully.")
         return redirect(url_for("student_timetable"))
-    schedules = WeeklySchedule.query.filter_by(student_user_id=user.id).order_by(WeeklySchedule.day_of_week, WeeklySchedule.start_time).all()
-    return render_template("student_timetable.html", current_user=user, student_profile=profile, schedules=schedules, active_page="timetable")
+    return render_student_section("timetable")
 
 
 @app.route("/student/calendar")
@@ -1021,6 +1149,58 @@ def student_assignments():
 @app.route("/student/results")
 def student_results():
     return render_student_section("results")
+
+
+@app.route("/student/final-results", methods=["GET", "POST"])
+def student_final_results():
+    user = get_current_user_for_role("Student")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        uploaded = request.files.get("final_result_file")
+        if not uploaded or not uploaded.filename or "." not in uploaded.filename or uploaded.filename.rsplit(".", 1)[1].lower() not in FINAL_RESULT_EXTENSIONS:
+            flash("Please upload a PDF, JPG, JPEG, PNG, or WEBP file.")
+            return redirect(url_for("student_final_results"))
+        original = secure_filename(uploaded.filename)
+        stored = f"{uuid.uuid4().hex}_{original}"
+        os.makedirs(FINAL_RESULT_UPLOAD_FOLDER, exist_ok=True)
+        uploaded.save(os.path.join(FINAL_RESULT_UPLOAD_FOLDER, stored))
+        document_id = request.form.get("document_id", type=int)
+        if document_id:
+            document = StudentFinalResult.query.filter_by(id=document_id, student_user_id=user.id).first_or_404()
+            old_path = os.path.join(FINAL_RESULT_UPLOAD_FOLDER, document.stored_filename)
+            document.original_filename, document.stored_filename, document.uploaded_at = original, stored, datetime.utcnow()
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        else:
+            db.session.add(StudentFinalResult(student_user_id=user.id, original_filename=original, stored_filename=stored))
+        db.session.commit()
+        flash("Final result document uploaded successfully.")
+        return redirect(url_for("student_final_results"))
+    return render_student_section("final_results")
+
+
+@app.route("/student/final-results/<int:document_id>/download")
+def download_student_final_result(document_id):
+    user = get_current_user_for_role("Student")
+    document = StudentFinalResult.query.filter_by(id=document_id, student_user_id=user.id if user else -1).first_or_404()
+    return send_from_directory(FINAL_RESULT_UPLOAD_FOLDER, document.stored_filename, as_attachment=False, download_name=document.original_filename)
+
+
+@app.route("/student/final-results/<int:document_id>/delete", methods=["POST"])
+def delete_student_final_result(document_id):
+    user = get_current_user_for_role("Student")
+    if not user:
+        return redirect(url_for("login"))
+    document = StudentFinalResult.query.filter_by(id=document_id, student_user_id=user.id).first_or_404()
+    path = os.path.join(FINAL_RESULT_UPLOAD_FOLDER, document.stored_filename)
+    db.session.delete(document)
+    db.session.commit()
+    if os.path.exists(path):
+        os.remove(path)
+    flash("Final result document deleted.")
+    return redirect(url_for("student_final_results"))
 
 
 @app.route("/student/fees")
@@ -1079,9 +1259,17 @@ def settings():
 
 
 @app.route("/teacher/settings")
+def teacher_settings():
+    return redirect(url_for("settings"))
+
+
 @app.route("/parent/settings")
+def parent_settings():
+    return redirect(url_for("settings"))
+
+
 @app.route("/admin/settings")
-def role_settings():
+def admin_settings():
     return redirect(url_for("settings"))
 
 
@@ -1118,12 +1306,20 @@ def teacher():
         flash("Today's lecture added successfully.")
         return redirect(url_for("teacher"))
 
+    today = datetime.today()
+    today_lectures = WeeklySchedule.query.filter_by(
+        student_user_id=user.id,
+        teacher=user.full_name,
+        day_of_week=today.weekday(),
+    ).order_by(WeeklySchedule.start_time).all()
+
     return render_template(
         "teacher.html",
         current_user=user,
         teacher_profile=teacher_profile,
         attendance_analytics=[],
         attendance_summary=None,
+        today_lectures=today_lectures,
         recent_uploads=AcademicMaterial.query.filter_by(
             teacher_user_id=user.id
         ).order_by(AcademicMaterial.uploaded_at.desc()).limit(5).all(),
@@ -1274,7 +1470,100 @@ def manage_materials():
         flash("Set your department before managing materials.")
         return redirect(url_for("teacher"))
 
+    result_department = request.args.get("result_department", "").strip()
+    result_semester = request.args.get("result_semester", "").strip()
+    result_division = request.args.get("result_division", "").strip()
+    result_subject = request.args.get("result_subject", "").strip()
+    result_exam = request.args.get("result_exam", "").strip()
+    result_departments = [d.name for d in Department.query.order_by(Department.name).all()]
+    result_semesters = list(range(1, 9))
+    result_divisions = [v for (v,) in Student.query.with_entities(Student.division).filter(Student.division.isnot(None), Student.division != "").distinct().order_by(Student.division).all()]
+    result_subjects = get_department_subjects(result_department or teacher_profile.department)
+    result_query = Student.query
+    if result_department in result_departments:
+        result_query = result_query.filter(Student.department == result_department)
+    else:
+        result_department = ""
+    if result_semester.isdigit() and int(result_semester) in result_semesters:
+        result_query = result_query.filter(Student.semester == int(result_semester))
+    else:
+        result_semester = ""
+    if result_division in result_divisions:
+        result_query = result_query.filter(Student.division == result_division)
+    else:
+        result_division = ""
+    if result_subject:
+        enrolled_ids = []
+        if "student_subject_enrollments" in inspect(db.engine).get_table_names() and "subjects" in inspect(db.engine).get_table_names():
+            enrolled_ids = [row[0] for row in db.session.execute(text("SELECT student_user_id FROM student_subject_enrollments e JOIN subjects s ON s.id = e.subject_id WHERE s.name = :subject"), {"subject": result_subject}).all()]
+        if enrolled_ids:
+            result_query = result_query.filter(Student.user_id.in_(enrolled_ids))
+    result_students = [(profile, student_user) for profile in result_query.all() if (student_user := db.session.get(User, profile.user_id)) is not None]
+    existing_results = {}
+    if result_subject and result_exam:
+        existing_results = {r.student.enrollment_no: r.marks_grade for r in StudentResult.query.filter_by(subject=result_subject, exam=result_exam).all() if r.student and r.student.enrollment_no}
+    existing_out_of_marks = next((r.out_of_marks for r in StudentResult.query.filter_by(subject=result_subject, exam=result_exam).all()), None) if result_subject and result_exam else None
+    existing_is_internal = next((r.is_internal for r in StudentResult.query.filter_by(subject=result_subject, exam=result_exam).all()), True) if result_subject and result_exam else True
+
     if request.method == "POST":
+        if request.form.get("action") == "delete_material":
+            material = AcademicMaterial.query.filter_by(
+                id=request.form.get("material_id", type=int),
+                teacher_user_id=user.id,
+            ).first()
+            if not material:
+                flash("Material not found or you do not have permission to delete it.")
+            else:
+                stored_path = os.path.join(MATERIAL_UPLOAD_FOLDER, material.stored_filename) if material.stored_filename else None
+                db.session.delete(material)
+                db.session.commit()
+                if stored_path and os.path.exists(stored_path):
+                    os.remove(stored_path)
+                flash("Material deleted successfully.")
+            return redirect(url_for("manage_materials"))
+        if request.form.get("action") == "save_results":
+            subject = request.form.get("result_subject", "").strip()
+            exam = request.form.get("result_exam", "").strip()
+            try:
+                out_of_marks = float(request.form.get("out_of_marks", ""))
+            except (TypeError, ValueError):
+                out_of_marks = 0
+            if not subject or not exam or out_of_marks <= 0:
+                flash("Subject, Exam/Assessment, and a valid Out of Marks value are required.")
+                return redirect(url_for("manage_materials"))
+            is_internal = request.form.get("is_internal") == "on"
+            saved = 0
+            invalid = 0
+            for key, value in request.form.items():
+                if not key.startswith("marks_"):
+                    continue
+                identifier = key[6:]
+                marks = value.strip()
+                student_user = db.session.get(User, int(identifier)) if identifier.isdigit() else User.query.filter_by(enrollment_no=identifier, role="Student").first()
+                if not student_user or student_user.role != "Student" or not marks:
+                    continue
+                try:
+                    if float(marks) > out_of_marks:
+                        invalid += 1
+                        continue
+                except ValueError:
+                    pass
+                result = StudentResult.query.filter_by(student_user_id=student_user.id, subject=subject, exam=exam).first()
+                if result is not None and result.teacher_user_id != user.id:
+                    continue
+                if result is None:
+                    result = StudentResult(student_user_id=student_user.id, subject=subject, exam=exam)
+                    db.session.add(result)
+                result.teacher_user_id = user.id
+                result.marks_grade = marks
+                result.out_of_marks = out_of_marks
+                result.is_internal = is_internal
+                saved += 1
+            db.session.commit()
+            flash(f"Results saved for {saved} student(s).")
+            if invalid:
+                flash(f"{invalid} mark(s) exceeded the Out of Marks value and were skipped.")
+            return redirect(url_for("manage_materials", result_subject=subject, result_exam=exam))
         material_type = request.form.get("material_type", "")
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
@@ -1358,6 +1647,19 @@ def manage_materials():
         material_upload_rules=MATERIAL_UPLOAD_RULES,
         teacher_subjects=[teacher_profile.subject] if teacher_profile.subject else [],
         materials=materials,
+        result_departments=result_departments,
+        result_semesters=result_semesters,
+        result_divisions=result_divisions,
+        result_subjects=result_subjects,
+        result_students=result_students,
+        result_department=result_department,
+        result_semester=result_semester,
+        result_division=result_division,
+        result_subject=result_subject,
+        result_exam=result_exam,
+        existing_results=existing_results,
+        existing_out_of_marks=existing_out_of_marks,
+        existing_is_internal=existing_is_internal,
     )
 
 
@@ -1470,12 +1772,96 @@ def parent():
         )
 
     connected_students = get_parent_connected_students(user)
+    attendance_student_name = None
+    recent_results = []
+    upcoming_events = []
+    performance_average = None
+    if connected_students:
+        student_user = connected_students[0][0]
+        student_profile = connected_students[0][1]
+        attendance_student_name = student_user.full_name
+        for result in StudentResult.query.filter_by(
+            student_user_id=student_user.id
+        ).order_by(StudentResult.updated_at.desc()).limit(5).all():
+            percentage = None
+            try:
+                if result.out_of_marks and float(result.out_of_marks) > 0:
+                    percentage = round(
+                        float(result.marks_grade) / float(result.out_of_marks) * 100, 2
+                    )
+            except (TypeError, ValueError):
+                pass
+            recent_results.append({
+                "subject": result.subject,
+                "exam": result.exam,
+                "marks": result.marks_grade,
+                "out_of_marks": result.out_of_marks,
+                "percentage": percentage,
+            })
+        internal_percentages = []
+        for result in StudentResult.query.filter_by(
+            student_user_id=student_user.id, is_internal=True
+        ).all():
+            try:
+                if result.out_of_marks and float(result.out_of_marks) > 0:
+                    internal_percentages.append(
+                        float(result.marks_grade) / float(result.out_of_marks) * 100
+                    )
+            except (TypeError, ValueError):
+                continue
+        if internal_percentages:
+            performance_average = round(
+                sum(internal_percentages) / len(internal_percentages), 2
+            )
+        upcoming_events = AcademicMaterial.query.filter(
+            AcademicMaterial.department == student_profile.department,
+            AcademicMaterial.material_type.in_(["Academic Calendar", "Notice"]),
+        ).order_by(AcademicMaterial.uploaded_at.desc()).limit(5).all()
 
     return render_template(
         "parent.html",
         current_user=user,
-        connected_students=connected_students
+        connected_students=connected_students,
+        attendance_student_name=attendance_student_name,
+        today_attendance=None,
+        overall_attendance=None,
+        recent_results=recent_results,
+        upcoming_events=upcoming_events,
+        performance_average=performance_average,
     )
+
+
+@app.route("/parent/profile")
+def parent_profile():
+    user = get_current_user_for_role("Parent")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    return render_template("parent_profile.html", current_user=user)
+
+
+@app.route("/parent/profile/edit", methods=["GET", "POST"])
+def edit_parent_profile():
+    user = get_current_user_for_role("Parent")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+        if not full_name or not email:
+            flash("Full name and email are required.")
+            return redirect(url_for("edit_parent_profile"))
+        if User.query.filter(User.email == email, User.id != user.id).first():
+            flash("Email already registered!")
+            return redirect(url_for("edit_parent_profile"))
+        user.full_name = full_name
+        user.email = email
+        user.phone = request.form.get("phone", "").strip() or None
+        db.session.commit()
+        flash("Profile updated successfully!")
+        return redirect(url_for("parent_profile"))
+    return render_template("edit_parent_profile.html", current_user=user)
 
 
 @app.route("/parent/connect-student", methods=["POST"])
@@ -1546,6 +1932,8 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
 
     connected_students = get_parent_connected_students(user)
     requested_student_id = request.args.get("student_id", type=int)
+    if material_type == "Notice":
+        requested_student_id = None
     selected_student = get_parent_connected_student(user, requested_student_id)
     if requested_student_id and not selected_student:
         flash("You can only view data for a connected student.")
@@ -1554,12 +1942,25 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
         selected_student = connected_students[0]
 
     materials = []
+    student_results = []
+    notifications = []
     if selected_student:
-        _, student_profile = selected_student
-        materials = AcademicMaterial.query.filter_by(
-            material_type=material_type,
-            department=student_profile.department,
-        ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+        student_user, student_profile = selected_student
+        if material_type == "Result":
+            student_results = StudentResult.query.filter_by(
+                student_user_id=student_user.id
+            ).order_by(StudentResult.updated_at.desc()).all()
+        elif material_type != "Notice":
+            materials = AcademicMaterial.query.filter_by(
+                material_type=material_type,
+                department=student_profile.department,
+            ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+    if material_type == "Notice":
+        connected_ids = [student_user.id for student_user, _ in connected_students]
+        if connected_ids:
+            notifications = StudentNotification.query.filter(
+                StudentNotification.student_user_id.in_(connected_ids)
+            ).order_by(StudentNotification.created_at.desc()).all()
 
     return render_template(
         "parent_academic_section.html",
@@ -1567,6 +1968,8 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
         connected_students=connected_students,
         selected_student=selected_student,
         materials=materials,
+        student_results=student_results,
+        notifications=notifications,
         section_title=title,
         section_icon=icon,
         empty_message=empty_message,
@@ -1597,7 +2000,9 @@ def parent_calendar():
 
 @app.route("/parent/notices")
 def parent_notices():
-    return render_role_section("Parent", "notices")
+    return render_parent_academic_section(
+        "Notice", "Notices", "fa-bell", "No notices available yet."
+    )
 
 
 # ==========================================
@@ -1616,40 +2021,212 @@ def admin():
     students = User.query.filter_by(role="Student").all()
     teachers = User.query.filter_by(role="Teacher").all()
     parents = User.query.filter_by(role="Parent").all()
+    departments = Department.query.count()
+    recent_notices = AcademicMaterial.query.filter_by(
+        material_type="Notice"
+    ).order_by(AcademicMaterial.uploaded_at.desc()).limit(5).all()
     return render_template(
         "admin.html",
         current_user=user,
         students=students,
         teachers=teachers,
-        parents=parents
+        parents=parents,
+        departments=departments,
+        recent_notices=recent_notices,
     )
 
 
-def admin_user_rows(role, identifier_field):
-    return [
+@app.route("/admin/management", methods=["GET", "POST"])
+def admin_management():
+    current_admin = get_current_user_for_role("Admin")
+    if not current_admin:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        action = request.form.get("action", "create")
+        if action == "delete":
+            target = db.session.get(User, request.form.get("user_id", type=int))
+            admin_count = User.query.filter_by(role="Admin").count()
+            if not target or target.role != "Admin":
+                flash("Admin not found.")
+            elif target.id == current_admin.id:
+                flash("You cannot delete your own admin account.")
+            elif admin_count <= 1:
+                flash("The last admin account cannot be deleted.")
+            else:
+                db.session.delete(target)
+                db.session.commit()
+                flash("Admin removed successfully.")
+            return redirect(url_for("admin_management"))
+
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+        phone = request.form.get("phone", "").strip() or None
+        admin_id = request.form.get("admin_id", "").strip()
+        password = request.form.get("password", "")
+        if not full_name or not email or not admin_id or not password:
+            flash("Full name, email, Admin ID, and password are required.")
+        elif User.query.filter(func.lower(User.email) == email.casefold()).first():
+            flash("Email already registered.")
+        elif User.query.filter(func.lower(User.admin_id) == admin_id.casefold()).first():
+            flash("Admin ID already exists.")
+        else:
+            new_admin = User(
+                full_name=full_name,
+                email=email,
+                phone=phone,
+                admin_id=admin_id,
+                password=bcrypt.generate_password_hash(password).decode("utf-8"),
+                role="Admin",
+            )
+            db.session.add(new_admin)
+            db.session.commit()
+            flash("Admin account created successfully.")
+        return redirect(url_for("admin_management"))
+
+    admins = User.query.filter_by(role="Admin").order_by(User.full_name.asc()).all()
+    return render_template("admin_management.html", current_user=current_admin, admins=admins)
+
+
+@app.route("/admin/profile")
+def admin_profile():
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    return render_template("admin_profile.html", current_user=user)
+
+
+@app.route("/admin/profile/edit", methods=["GET", "POST"])
+def edit_admin_profile():
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+        if not full_name or not email:
+            flash("Full name and email are required.")
+            return redirect(url_for("edit_admin_profile"))
+        if User.query.filter(User.email == email, User.id != user.id).first():
+            flash("Email already registered!")
+            return redirect(url_for("edit_admin_profile"))
+        user.full_name = full_name
+        user.email = email
+        user.phone = request.form.get("phone", "").strip() or None
+        db.session.commit()
+        flash("Profile updated successfully!")
+        return redirect(url_for("admin_profile"))
+    return render_template("edit_admin_profile.html", current_user=user)
+
+
+def admin_user_rows(role, identifier_field, include_ids=False, search_query=""):
+    users = User.query.filter_by(role=role).all()
+    search_query = (search_query or "").strip().casefold()
+    if search_query:
+        users = [user for user in users if search_query in " ".join([
+            user.full_name or "", user.email or "", getattr(user, identifier_field) or ""
+        ]).casefold()]
+    rows = [
         [
             user.full_name,
             getattr(user, identifier_field) or "Not available",
             user.email or "Not available",
             user.phone or "Not available",
         ]
-        for user in User.query.filter_by(role=role).all()
+        for user in users
     ]
+    return (rows, [user.id for user in users]) if include_ids else rows
 
 
-@app.route("/admin/students")
+def delete_admin_user(user, target_role):
+    if not user or user.role != target_role:
+        return False, "User not found."
+    if target_role == "Student":
+        ParentStudentConnection.query.filter(
+            (ParentStudentConnection.student_user_id == user.id) |
+            (ParentStudentConnection.parent_user_id == user.id)
+        ).delete(synchronize_session=False)
+        Student.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+        StudentResult.query.filter_by(student_user_id=user.id).delete(synchronize_session=False)
+        StudentNotification.query.filter_by(student_user_id=user.id).delete(synchronize_session=False)
+        WeeklySchedule.query.filter_by(student_user_id=user.id).delete(synchronize_session=False)
+        StudentFinalResult.query.filter_by(student_user_id=user.id).delete(synchronize_session=False)
+    elif target_role == "Teacher":
+        Teacher.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+        TeacherSubjectAssignment.query.filter_by(teacher_user_id=user.id).delete(synchronize_session=False)
+        StudentResult.query.filter_by(teacher_user_id=user.id).delete(synchronize_session=False)
+        material_ids = [m.id for m in AcademicMaterial.query.filter_by(teacher_user_id=user.id).all()]
+        if material_ids:
+            StudentNotification.query.filter(StudentNotification.material_id.in_(material_ids)).delete(synchronize_session=False)
+        AcademicMaterial.query.filter_by(teacher_user_id=user.id).delete(synchronize_session=False)
+    db.session.delete(user)
+    db.session.commit()
+    return True, f"{target_role} removed successfully."
+
+
+@app.route("/admin/students", methods=["GET", "POST"])
 def admin_students():
-    return render_role_section("Admin", "students", admin_user_rows("Student", "enrollment_no"))
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        target = db.session.get(User, request.form.get("user_id", type=int))
+        if target and target.id != user.id:
+            _, message = delete_admin_user(target, "Student")
+            flash(message)
+        else:
+            flash("Student not found.")
+        return redirect(url_for("admin_students"))
+    search_query = request.args.get("q", "")
+    rows, ids = admin_user_rows("Student", "enrollment_no", True, search_query)
+    return render_role_section("Admin", "students", rows, ids, search_query)
 
 
-@app.route("/admin/teachers")
+@app.route("/admin/teachers", methods=["GET", "POST"])
 def admin_teachers():
-    return render_role_section("Admin", "teachers", admin_user_rows("Teacher", "employee_id"))
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        target = db.session.get(User, request.form.get("user_id", type=int))
+        if target and target.id != user.id:
+            _, message = delete_admin_user(target, "Teacher")
+            flash(message)
+        else:
+            flash("Teacher not found.")
+        return redirect(url_for("admin_teachers"))
+    search_query = request.args.get("q", "")
+    rows, ids = admin_user_rows("Teacher", "employee_id", True, search_query)
+    return render_role_section("Admin", "teachers", rows, ids, search_query)
 
 
-@app.route("/admin/parents")
+@app.route("/admin/parents", methods=["GET", "POST"])
 def admin_parents():
-    return render_role_section("Admin", "parents", admin_user_rows("Parent", "parent_id"))
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        target = db.session.get(User, request.form.get("user_id", type=int))
+        if target and target.id != user.id:
+            ParentStudentConnection.query.filter(
+                (ParentStudentConnection.parent_user_id == target.id) |
+                (ParentStudentConnection.student_user_id == target.id)
+            ).delete(synchronize_session=False)
+            db.session.delete(target)
+            db.session.commit()
+            flash("Parent removed successfully.")
+        else:
+            flash("Parent not found.")
+        return redirect(url_for("admin_parents"))
+    search_query = request.args.get("q", "")
+    rows, ids = admin_user_rows("Parent", "parent_id", True, search_query)
+    return render_role_section("Admin", "parents", rows, ids, search_query)
 
 
 @app.route("/admin/departments", methods=["GET", "POST"])
@@ -1699,6 +2276,83 @@ def manage_departments():
     )
 
 
+@app.route("/admin/subject-assignments", methods=["GET", "POST"])
+def admin_subject_assignments():
+    user = get_current_user_for_role("Admin")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        action = request.form.get("action", "add")
+        assignment_id = request.form.get("assignment_id", type=int)
+        department = request.form.get("department", "").strip()
+        subject_name = request.form.get("subject_name", "").strip()
+        division = request.form.get("division", "").strip().upper()
+        teacher_id = request.form.get("teacher_id", type=int)
+        semester = request.form.get("semester", type=int)
+
+        if action == "delete":
+            assignment = db.session.get(TeacherSubjectAssignment, assignment_id)
+            if assignment:
+                db.session.delete(assignment)
+                db.session.commit()
+                flash("Subject assignment deleted.")
+            else:
+                flash("Subject assignment not found.")
+            return redirect(url_for("admin_subject_assignments"))
+
+        teacher = User.query.filter_by(id=teacher_id, role="Teacher").first()
+        department_record = Department.query.filter_by(name=department).first()
+        if not department_record or not subject_name or semester not in range(1, 9) or division not in {"A", "B", "C"} or not teacher:
+            flash("Select a valid department, semester, division, subject, and teacher.")
+            return redirect(url_for("admin_subject_assignments"))
+
+        subject = Subject.query.filter(
+            func.lower(Subject.name) == subject_name.casefold(),
+            func.lower(Subject.department) == department.casefold(),
+        ).first()
+        if not subject:
+            subject = Subject(department=department, name=subject_name)
+            db.session.add(subject)
+            db.session.flush()
+
+        duplicate_query = TeacherSubjectAssignment.query.filter_by(
+            teacher_user_id=teacher.id,
+            subject_id=subject.id,
+            semester=semester,
+            division=division,
+        )
+        if assignment_id:
+            duplicate_query = duplicate_query.filter(TeacherSubjectAssignment.id != assignment_id)
+        if duplicate_query.first():
+            flash("That subject assignment already exists.")
+            return redirect(url_for("admin_subject_assignments"))
+
+        assignment = db.session.get(TeacherSubjectAssignment, assignment_id) if assignment_id else None
+        if not assignment:
+            assignment = TeacherSubjectAssignment()
+            db.session.add(assignment)
+        assignment.teacher_user_id = teacher.id
+        assignment.subject_id = subject.id
+        assignment.semester = semester
+        assignment.division = division
+        db.session.commit()
+        flash("Subject assignment saved successfully.")
+        return redirect(url_for("admin_subject_assignments"))
+
+    assignments = TeacherSubjectAssignment.query.join(Subject).join(User, User.id == TeacherSubjectAssignment.teacher_user_id).order_by(Subject.department, Subject.name, TeacherSubjectAssignment.semester, TeacherSubjectAssignment.division).all()
+    return render_template(
+        "admin_subject_assignments.html",
+        current_user=user,
+        assignments=assignments,
+        departments=get_departments(),
+        teachers=User.query.filter_by(role="Teacher").order_by(User.full_name).all(),
+        semesters=range(1, 9),
+        divisions=("A", "B", "C"),
+    )
+
+
 # ==========================================
 # LOGOUT
 # ==========================================
@@ -1729,6 +2383,8 @@ with app.app_context():
     ensure_teacher_profile_columns()
     ensure_academic_material_columns()
     ensure_weekly_schedule_columns()
+    ensure_student_result_columns()
+    ensure_teacher_subject_assignment_columns()
     seed_departments()
 
 

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/parent.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="parent-dashboard-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<aside class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Parent Portal</small></div><ul>
+    <li onclick="window.location.href='{{ url_for('parent') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>My Students</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_results') }}'"><i class="fa-solid fa-square-poll-vertical"></i><span>Results</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_calendar') }}'"><i class="fa-solid fa-calendar-week"></i><span>Academic Calendar</span></li>
+    <li onclick="window.location.href='{{ url_for('parent_notices') }}'"><i class="fa-solid fa-bell"></i><span>Notices</span></li>
+    <li class="sidebar-profile active"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.parent_id or 'Parent ID unavailable' }}</small></div></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></aside>
+<main class="main"><div class="topbar"><h1>My Profile</h1></div>
+    <section class="box parent-profile-page-card"><div class="profile-heading"><div><h3>{{ current_user.full_name }}</h3><p>Parent Profile</p></div></div><div class="profile-details">
+        <div class="profile-detail"><span>Full Name</span><strong>{{ current_user.full_name }}</strong></div>
+        <div class="profile-detail"><span>Email</span><strong>{{ current_user.email or 'Not available' }}</strong></div>
+        <div class="profile-detail"><span>Phone Number</span><strong>{{ current_user.phone or 'Not available' }}</strong></div>
+        <div class="profile-detail"><span>Parent ID</span><strong>{{ current_user.parent_id or 'Not available' }}</strong></div>
+    </div><div class="parent-profile-actions"><a class="secondary-button" href="{{ url_for('parent') }}">Back to Dashboard</a><a class="secondary-button" href="{{ url_for('edit_parent_profile') }}">Edit Profile</a></div></section>
+</main>
+</body>
+</html>

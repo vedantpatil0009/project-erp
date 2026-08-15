@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="admin-dashboard-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Admin Portal</small></div><ul>
+    <li onclick="window.location.href='{{ url_for('admin') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li onclick="window.location.href='{{ url_for('manage_departments') }}'"><i class="fa-solid fa-building"></i><span>Departments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_subject_assignments') }}'"><i class="fa-solid fa-book"></i><span>Subject Assignments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>Students</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_teachers') }}'"><i class="fa-solid fa-chalkboard-user"></i><span>Teachers</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_parents') }}'"><i class="fa-solid fa-people-group"></i><span>Parents</span></li>
+    <li class="active"><i class="fa-solid fa-user-shield"></i><span>Admin Management</span></li>
+    <li class="sidebar-profile"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.admin_id or 'Admin ID unavailable' }}</small></div></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main">
+    <div class="topbar"><h2>Admin Management</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>Admin</p></div></div></div>
+    {% with messages = get_flashed_messages() %}{% for message in messages %}<p class="admin-profile-message">{{ message }}</p>{% endfor %}{% endwith %}
+    <section class="box full"><h3>Add Admin</h3>
+        <form method="POST" class="admin-create-form">
+            <label>Full Name<input name="full_name" maxlength="100" required></label>
+            <label>Email<input type="email" name="email" maxlength="120" required></label>
+            <label>Phone Number<input type="tel" name="phone" maxlength="20"></label>
+            <label>Admin ID<input name="admin_id" maxlength="50" required></label>
+            <label>Password<input type="password" name="password" minlength="6" required></label>
+            <button type="submit">Create Admin</button>
+        </form>
+    </section>
+    <section class="box full"><h3>Existing Admins</h3>
+        {% if admins %}<table><tr><th>Full Name</th><th>Email</th><th>Phone</th><th>Admin ID</th><th>Actions</th></tr>
+        {% for admin in admins %}<tr><td>{{ admin.full_name }}</td><td>{{ admin.email or 'Not available' }}</td><td>{{ admin.phone or 'Not available' }}</td><td>{{ admin.admin_id or 'Not available' }}</td><td>{% if admin.id == current_user.id %}<span>Current account</span>{% else %}<form method="POST" onsubmit="return confirm('Delete this admin account?');"><input type="hidden" name="action" value="delete"><input type="hidden" name="user_id" value="{{ admin.id }}"><button type="submit">Delete</button></form>{% endif %}</td></tr>{% endfor %}</table>
+        {% else %}<p>No admin accounts found.</p>{% endif %}
+    </section>
+</main>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

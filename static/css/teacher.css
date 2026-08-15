@@ -686,6 +686,9 @@ body.teacher-manage-materials table th{padding:13px 14px;text-align:left;font-si
 body.teacher-manage-materials table td{padding:14px;color:#353557;font-size:13px;text-align:left}
 body.teacher-manage-materials table tr:last-child td{border-bottom:0}
 body.teacher-manage-materials .material-alert{border-radius:10px;background:#faf9ff;border:1px solid #ded5ff;color:#4d3a9d;margin-bottom:18px;padding:12px}
+body.teacher-manage-materials .teacher-result-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0 20px;padding:16px;background:#faf9ff;border:1px solid #ececf5;border-radius:10px}body.teacher-manage-materials .teacher-result-filters label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}body.teacher-manage-materials .teacher-result-filters select,body.teacher-manage-materials .teacher-result-filters input{padding:10px;border:1px solid #dfe3ef;border-radius:8px;background:#fff;font:inherit;font-size:12px}body.teacher-manage-materials .teacher-result-filters button{align-self:end;padding:10px 14px;font-size:12px}.teacher-results-table .result-entry{width:100%;padding:8px;border:1px solid #dfe3ef;border-radius:7px}.result-filter-hint{color:#777c9e;font-size:12px}@media(max-width:700px){body.teacher-manage-materials .teacher-result-filters{grid-template-columns:1fr}.body.teacher-manage-materials .teacher-result-filters button{width:100%}}
+body.teacher-manage-materials .teacher-results-save-form{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:14px}body.teacher-manage-materials .out-of-marks-label{display:flex;flex-direction:column;gap:5px;color:#777c9e;font-size:11px}body.teacher-manage-materials .out-of-marks-label input{width:140px;padding:9px;border:1px solid #dfe3ef;border-radius:8px;background:#fff}
+body.teacher-manage-materials .internal-result-label{display:flex;align-items:center;gap:6px;color:#777c9e;font-size:11px;padding-bottom:9px}
 @media(max-width:700px){body.teacher-manage-materials .material-form{grid-template-columns:1fr}}
 body.teacher-profile-page .topbar{margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid #ececf5}
 body.teacher-profile-page .topbar h2{font-size:24px;color:#17172b}
@@ -768,6 +771,15 @@ body.teacher-dashboard-page .teacher-quick-links a{margin-left:0}
     body.teacher-dashboard-page .sidebar ul li{padding-left:4px;padding-right:4px}
     body.teacher-dashboard-page .teacher-greeting h1{font-size:19px}
     body.teacher-dashboard-page .teacher-quick-links a{font-size:10px;padding:6px 8px}
+}
+
+/* Keep Teacher tables readable with contained horizontal scrolling on mobile. */
+@media(max-width:700px){
+    body.teacher-dashboard-page .box{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+    body.teacher-dashboard-page .box table{display:table;width:max-content;min-width:680px;max-width:none;table-layout:auto;white-space:nowrap}
+    body.teacher-dashboard-page .box table th,
+    body.teacher-dashboard-page .box table td{padding:9px 12px;font-size:12px;white-space:nowrap;word-break:normal;overflow-wrap:normal}
+    body.teacher-dashboard-page .box table td:last-child form{min-width:86px}
 }
 body.teacher-dashboard-page .teacher-lecture-form{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #edf0f7}
 body.teacher-dashboard-page .teacher-lecture-form input{min-width:0;padding:9px 10px;border:1px solid #dfe3ef;border-radius:8px;font:inherit;font-size:11px}

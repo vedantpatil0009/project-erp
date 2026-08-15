@@ -16,7 +16,8 @@
         <li class="{% if active_page == 'dashboard' %}active{% endif %}" onclick="window.location.href='{{ url_for('student') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
         <li class="{% if active_page == 'library' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_library') }}'"><i class="fa-solid fa-book-open"></i><span>My Courses</span></li>
         <li class="{% if active_page == 'attendance' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
-        <li class="{% if active_page == 'results' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_results') }}'"><i class="fa-solid fa-chart-simple"></i><span>Grades</span></li>
+        <li class="{% if active_page == 'results' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_results') }}'"><i class="fa-solid fa-chart-simple"></i><span>Results</span></li>
+        <li class="{% if active_page == 'final_results' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_final_results') }}'"><i class="fa-solid fa-file-certificate"></i><span>Final Result</span></li>
         <li class="{% if active_page == 'assignments' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
         <li class="{% if active_page == 'timetable' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_timetable') }}'"><i class="fa-solid fa-calendar-days"></i><span>Timetable</span></li>
         <li class="{% if active_page == 'materials' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Materials</span></li>
@@ -31,11 +32,11 @@
 </div>
 
 <main class="main">
-    <div class="topbar"><h2>{% if active_page == 'library' %}My Courses{% elif active_page == 'results' %}Grades{% else %}{{ section_title }}{% endif %}</h2></div>
+    <div class="topbar"><h2>{% if active_page == 'library' %}My Courses{% elif active_page == 'results' %}Results{% else %}{{ section_title }}{% endif %}</h2></div>
     <section class="profile-card">
         <div class="profile-heading">
             <i class="fa-solid {{ section_icon }}"></i>
-            <div><h3>{% if active_page == 'library' %}My Courses{% elif active_page == 'results' %}Grades{% else %}{{ section_title }}{% endif %}</h3><p>Student Services</p></div>
+            <div><h3>{% if active_page == 'library' %}My Courses{% elif active_page == 'results' %}Results{% else %}{{ section_title }}{% endif %}</h3><p>{% if active_page == 'results' and internal_average is not none %}Internal Performance: {{ internal_average }}%{% else %}Student Services{% endif %}</p></div>{% if active_page == 'results' %}<a class="profile-button" href="{{ url_for('student_final_results') }}">Final Result Documents</a>{% endif %}
         </div>
         {% if show_subject_filter %}
             <form class="subject-filter" method="GET" action="{{ url_for(section_endpoint) }}">
@@ -58,7 +59,16 @@
                 {% endfor %}
             </div>
         {% endif %}
-        {% if academic_materials %}
+        {% if active_page == 'timetable' %}
+            <details class="student-schedule-add"><summary>Add Lecture</summary><form method="POST" action="{{ url_for('student_timetable') }}"><input type="hidden" name="action" value="add"><label>Day<select name="day_of_week" required>{% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}<option value="{{ loop.index0 }}">{{ day }}</option>{% endfor %}</select></label><label>Start Time<input type="time" name="start_time" required></label><label>End Time<input type="time" name="end_time" required></label><label>Subject Name<input type="text" name="subject" required></label><label>Teacher Name (optional)<input type="text" name="teacher"></label><label>Room (optional)<input type="text" name="room"></label><button type="submit">Add Lecture</button></form></details>{% if schedules %}<div class="student-schedule-list">{% for schedule in schedules %}<div class="student-schedule-row"><div><strong>{{ ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][schedule.day_of_week] }}</strong><span>{{ schedule.start_time }} – {{ schedule.end_time }}</span></div><div><strong>{{ schedule.subject }}</strong><small>{% if schedule.teacher %}{{ schedule.teacher }}{% endif %}{% if schedule.room %}{% if schedule.teacher %} · {% endif %}{{ schedule.room }}{% endif %}</small></div><form method="POST" action="{{ url_for('student_timetable') }}" onsubmit="return confirm('Remove this lecture from your timetable?');"><input type="hidden" name="action" value="delete"><input type="hidden" name="lecture_id" value="{{ schedule.id }}"><button type="submit" class="schedule-delete">Remove</button></form></div>{% endfor %}</div>{% else %}<div class="overview-placeholder schedule-empty"><i class="fa-solid fa-calendar-days"></i><p>No classes scheduled yet</p></div>{% endif %}
+        {% elif active_page == 'library' and course_rows %}
+            <div class="course-card-grid">{% for course in course_rows %}<article class="course-card"><div class="course-card-banner"><i class="fa-solid fa-book-open"></i></div><div class="course-card-content"><h4>{{ course.subject }}</h4><span class="course-semester-badge">SEM - {{ course.semester or 'N/A' }}</span><p class="course-card-teacher">Teacher: {{ course.teacher }}</p></div></article>{% endfor %}</div>
+        {% elif active_page == 'final_results' %}
+            <form method="POST" action="{{ url_for('student_final_results') }}" enctype="multipart/form-data" class="final-result-upload-form"><label>Upload Result Document<input type="file" name="final_result_file" accept=".pdf,.jpg,.jpeg,.png,.webp" required></label><button type="submit">Upload Final Result</button></form>
+            {% if final_result_documents %}<div class="final-result-documents">{% for document in final_result_documents %}<div class="final-result-document"><div><strong>{{ document.original_filename }}</strong><small>{{ document.uploaded_at.strftime('%d %b %Y, %H:%M') }}</small></div><a href="{{ url_for('download_student_final_result', document_id=document.id) }}" target="_blank">View</a><form method="POST" action="{{ url_for('student_final_results') }}" enctype="multipart/form-data"><input type="file" name="final_result_file" accept=".pdf,.jpg,.jpeg,.png,.webp" required><input type="hidden" name="document_id" value="{{ document.id }}"><button type="submit">Replace</button></form><form method="POST" action="{{ url_for('delete_student_final_result', document_id=document.id) }}"><button type="submit">Delete</button></form></div>{% endfor %}</div>{% else %}<p class="empty-state">No final result documents uploaded.</p>{% endif %}
+        {% elif active_page == 'results' and student_results %}
+            <table><tr><th>Subject</th><th>Exam/Assessment</th><th>Marks/Grade</th><th>Teacher</th><th>Date</th></tr>{% for result in student_results %}<tr><td>{{ result.subject }}</td><td>{{ result.exam }}</td><td>{{ result.marks_grade }} / {{ result.out_of_marks|int if result.out_of_marks == result.out_of_marks|int else result.out_of_marks }}</td><td>{{ result.teacher.full_name if result.teacher else 'Not available' }}</td><td>{{ result.updated_at.strftime('%d %b %Y') if result.updated_at else 'Not available' }}</td></tr>{% endfor %}</table>
+        {% elif academic_materials %}
             <table>
                 <tr><th>Title</th><th>Subject</th><th>Description</th><th>Teacher</th><th>Uploaded</th><th>File</th></tr>
                 {% for material in academic_materials %}

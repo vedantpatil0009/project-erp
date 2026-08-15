@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Assignments | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="admin-dashboard-page admin-subject-assignments-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Admin Portal</small></div><ul>
+    <li onclick="window.location.href='{{ url_for('admin') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li onclick="window.location.href='{{ url_for('manage_departments') }}'"><i class="fa-solid fa-building"></i><span>Departments</span></li>
+    <li class="active"><i class="fa-solid fa-book"></i><span>Subject Assignments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>Students</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_teachers') }}'"><i class="fa-solid fa-chalkboard-user"></i><span>Teachers</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_parents') }}'"><i class="fa-solid fa-people-group"></i><span>Parents</span></li>
+    <li class="sidebar-profile"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.admin_id or 'Admin ID unavailable' }}</small></div></li><li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main"><div class="topbar"><h2>Subject Assignments</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>Admin</p></div></div></div>
+{% with messages = get_flashed_messages() %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endwith %}
+<section class="box full"><h3>Add Subject Assignment</h3><form method="POST"><input type="hidden" name="action" value="add"><label>Department<select name="department" required><option value="">Select Department</option>{% for department in departments %}<option value="{{ department.name }}">{{ department.name }}</option>{% endfor %}</select></label><label>Semester<select name="semester" required><option value="">Select Semester</option>{% for semester in semesters %}<option value="{{ semester }}">Semester {{ semester }}</option>{% endfor %}</select></label><label>Division/Section<select name="division" required><option value="">Select Division</option>{% for division in divisions %}<option value="{{ division }}">{{ division }}</option>{% endfor %}</select></label><label>Subject Name<input name="subject_name" maxlength="100" required></label><label>Assigned Teacher<select name="teacher_id" required><option value="">Select Teacher</option>{% for teacher in teachers %}<option value="{{ teacher.id }}">{{ teacher.full_name }}</option>{% endfor %}</select></label><button type="submit">Add Assignment</button></form></section>
+<section class="box full"><h3>Existing Assignments</h3>{% if assignments %}<table><tr><th>Department</th><th>Semester</th><th>Division</th><th>Subject</th><th>Teacher</th><th>Actions</th></tr>{% for assignment in assignments %}<tr><td>{{ assignment.subject.department }}</td><td>{{ assignment.semester }}</td><td>{{ assignment.division }}</td><td>{{ assignment.subject.name }}</td><td>{{ assignment.teacher.full_name }}</td><td><form method="POST"><input type="hidden" name="action" value="delete"><input type="hidden" name="assignment_id" value="{{ assignment.id }}"><button type="submit">Delete</button></form></td></tr>{% endfor %}</table>{% else %}<p>No subject assignments available.</p>{% endif %}</section>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script></main></body></html>

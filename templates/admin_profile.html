@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="admin-dashboard-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<aside class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Admin Portal</small></div><ul>
+    <li onclick="window.location.href='{{ url_for('admin') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
+    <li onclick="window.location.href='{{ url_for('manage_departments') }}'"><i class="fa-solid fa-building"></i><span>Departments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_subject_assignments') }}'"><i class="fa-solid fa-book"></i><span>Subject Assignments</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_students') }}'"><i class="fa-solid fa-user-graduate"></i><span>Students</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_teachers') }}'"><i class="fa-solid fa-chalkboard-user"></i><span>Teachers</span></li>
+    <li onclick="window.location.href='{{ url_for('admin_parents') }}'"><i class="fa-solid fa-people-group"></i><span>Parents</span></li>
+    <li class="sidebar-profile active"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.admin_id or 'Admin ID unavailable' }}</small></div></li>
+    <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></aside>
+<main class="main"><div class="topbar"><h2>My Profile</h2></div>
+    <section class="box admin-profile-card"><div class="profile-heading"><div><h3>{{ current_user.full_name }}</h3><p>Admin Profile</p></div></div><div class="profile-details">
+        <div class="profile-detail"><span>Full Name</span><strong>{{ current_user.full_name }}</strong></div>
+        <div class="profile-detail"><span>Email</span><strong>{{ current_user.email or 'Not available' }}</strong></div>
+        <div class="profile-detail"><span>Phone Number</span><strong>{{ current_user.phone or 'Not available' }}</strong></div>
+        <div class="profile-detail"><span>Admin ID</span><strong>{{ current_user.admin_id or 'Not available' }}</strong></div>
+        <div class="profile-detail"><span>Role</span><strong>{{ current_user.role }}</strong></div>
+    </div><div class="admin-profile-actions"><a href="{{ url_for('admin') }}">Back to Dashboard</a><a href="{{ url_for('edit_admin_profile') }}">Edit Profile</a></div></section>
+</main>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
