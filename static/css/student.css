@@ -556,6 +556,8 @@ button,.secondary-button{box-shadow:0 3px 8px rgba(37,99,235,.14)}
 .student-section-attendance table tr:hover{background:#fbfefc}
 .student-section-attendance .empty-state{background:linear-gradient(180deg,#fbfefc,#f7fbf8);border-color:#cde8d5;padding:60px 20px}
 .student-section-attendance .empty-state i{color:#23ad65}
+.student-section-attendance .overview-placeholder{height:auto;min-height:120px;background:transparent;border-radius:0;padding:28px 20px}
+.student-section-attendance .attendance-empty-message{display:flex;align-items:center;justify-content:center;gap:9px;min-height:120px;padding:20px;color:#777c9e;font-size:13px}.student-section-attendance .attendance-empty-message i{color:#23ad65;font-size:24px}
 
 /* My Courses page-specific dashboard styling */
 .student-section-library .main{max-width:1280px}

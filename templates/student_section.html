@@ -50,7 +50,7 @@
             </form>
         {% endif %}
         {% if active_page == 'attendance' %}
-            {% if attendance_summary %}<table><tr><th>Subject</th><th>Present Lectures</th><th>Total Lectures</th><th>Percentage</th></tr>{% for item in attendance_summary %}<tr><td>{{ item.subject }}</td><td>{{ item.present }}</td><td>{{ item.total }}</td><td>{{ item.percentage }}%</td></tr>{% endfor %}</table>{% else %}<div class="overview-placeholder"><i class="fa-solid fa-calendar-xmark"></i><p>No attendance records available.</p></div>{% endif %}
+            {% if attendance_summary %}<table><tr><th>Subject</th><th>Present Lectures</th><th>Total Lectures</th><th>Percentage</th></tr>{% for item in attendance_summary %}<tr><td>{{ item.subject }}</td><td>{{ item.present }}</td><td>{{ item.total }}</td><td>{{ item.percentage }}%</td></tr>{% endfor %}</table>{% else %}<p class="attendance-empty-message"><i class="fa-solid fa-calendar-xmark"></i><span>No attendance records available.</span></p>{% endif %}
         {% elif active_page == 'notices' and notifications %}
             <div class="notification-list">
                 {% for notification in notifications %}
@@ -84,7 +84,7 @@
                     </tr>
                 {% endfor %}
             </table>
-        {% else %}
+        {% elif active_page != 'attendance' %}
             <div class="empty-state">
                 <i class="fa-solid {{ section_icon }}"></i>
                 <p>{{ empty_message }}</p>

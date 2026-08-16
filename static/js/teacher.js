@@ -8,7 +8,7 @@
 const menuItems = document.querySelectorAll(".sidebar ul li");
 
 const teacherSidebar = document.querySelector(".sidebar ul");
-if (teacherSidebar && !teacherSidebar.querySelector('[data-settings-link]')) {
+if (teacherSidebar && !teacherSidebar.querySelector('[data-settings-link]') && !Array.from(teacherSidebar.children).some(item => item.textContent.trim() === "Settings")) {
     const settingsItem = document.createElement("li");
     settingsItem.setAttribute("data-settings-link", "true");
     settingsItem.innerHTML = '<i class="fa-solid fa-gear"></i><span>Settings</span>';
@@ -17,7 +17,7 @@ if (teacherSidebar && !teacherSidebar.querySelector('[data-settings-link]')) {
     const logout = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Logout");
     teacherSidebar.insertBefore(settingsItem, profile || logout || null);
 }
-if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-schedule-link]')) {
+if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-schedule-link]') && !Array.from(teacherSidebar.children).some(item => item.textContent.trim() === "Manage Weekly Schedule")) {
     const scheduleItem = document.createElement("li");
     scheduleItem.setAttribute("data-teacher-schedule-link", "true");
     scheduleItem.innerHTML = '<i class="fa-solid fa-calendar-days"></i><span>Manage Weekly Schedule</span>';

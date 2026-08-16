@@ -11,15 +11,10 @@
 </head>
 <body class="teacher-dashboard-page teacher-manage-materials theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
 <div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Teacher Portal</small></div><ul>
-        <li onclick="window.location.href='{{ url_for('teacher') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
-        <li onclick="window.location.href='{{ url_for('teacher_profile') }}'"><i class="fa-solid fa-circle-user"></i><span>Profile</span></li>
-        <li onclick="window.location.href='{{ url_for('teacher_students') }}'"><i class="fa-solid fa-users"></i><span>Students</span></li>
-        <li onclick="window.location.href='{{ url_for('teacher_attendance') }}'"><i class="fa-solid fa-user-check"></i><span>Attendance</span></li>
-        <li onclick="window.location.href='{{ url_for('teacher_materials') }}'"><i class="fa-solid fa-book"></i><span>Study Material</span></li>
-        <li onclick="window.location.href='{{ url_for('teacher_assignments') }}'"><i class="fa-solid fa-file-lines"></i><span>Assignments</span></li>
-        <li class="active"><i class="fa-solid fa-folder-plus"></i><span>Manage Materials</span></li>
-        <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
-    </ul></div>
+{% for endpoint, label, icon in nav_items if endpoint != 'teacher_profile' %}<li class="{% if endpoint == active_endpoint %}active{% endif %}" onclick="window.location.href='{{ url_for(endpoint) }}'"><i class="fa-solid {{ icon }}"></i><span>{{ label }}</span></li>{% endfor %}
+<li class="sidebar-profile" onclick="window.location.href='{{ url_for('teacher_profile') }}'"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.employee_id or 'Employee ID unavailable' }}</small></div></li>
+<li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
     <main class="main">
         <div class="topbar"><h2>Manage Materials</h2><div class="profile"><i class="fa-solid fa-circle-user fa-2x"></i><div><h4>{{ current_user.full_name }}</h4><p>{{ teacher_profile.department }}</p></div></div></div>
         {% with messages = get_flashed_messages() %}{% for message in messages %}<div class="material-alert">{{ message }}</div>{% endfor %}{% endwith %}

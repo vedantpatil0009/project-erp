@@ -3,7 +3,7 @@
 const menuItems = document.querySelectorAll(".sidebar ul li");
 
 const studentSidebar = document.querySelector(".sidebar ul");
-if (studentSidebar && !studentSidebar.querySelector('[data-final-result-link]')) {
+if (studentSidebar && !studentSidebar.querySelector('[data-final-result-link]') && !Array.from(studentSidebar.children).some(item => item.textContent.trim() === "Final Result")) {
     const finalResultItem = document.createElement("li");
     finalResultItem.setAttribute("data-final-result-link", "true");
     finalResultItem.innerHTML = '<i class="fa-solid fa-file-certificate"></i><span>Final Result</span>';

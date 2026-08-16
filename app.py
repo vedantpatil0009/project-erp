@@ -1,7 +1,7 @@
 import os
 import uuid
 import calendar as calendar_module
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import (
     Flask,
@@ -185,8 +185,8 @@ ROLE_SECTION_CONFIG = {
     "Teacher": {
         "students": ("Students", "fa-users", ["Name", "Enrollment Number", "Department", "Semester"], "No students are assigned to your department."),
         "attendance": ("Attendance", "fa-user-check", ["Student", "Subject", "Date", "Status"], "No attendance records are available yet."),
-        "materials": ("Study Material", "fa-book", ["Title", "Subject", "Uploaded On"], "You have not uploaded any study material yet."),
-        "assignments": ("Assignments", "fa-file-lines", ["Assignment", "Subject", "Due Date", "Status"], "You have not created any assignments yet."),
+        "materials": ("Study Material", "fa-book", ["Title", "Subject", "Uploaded On", "Download"], "You have not uploaded any study material yet."),
+        "assignments": ("Assignments", "fa-file-lines", ["Assignment", "Subject", "Due Date", "Download"], "You have not created any assignments yet."),
         "lectures": ("Weekly Schedule", "fa-calendar-days", [], "No lectures scheduled yet."),
     },
     "Parent": {
@@ -480,9 +480,11 @@ def create_material_notifications(material):
     db.session.commit()
 
 
-def get_attendance_summary(student_user_id):
+def get_attendance_summary(student_user_id, subject_name=None):
     """Return subject-wise attendance and the overall percentage from records."""
     records = Attendance.query.filter_by(student_user_id=student_user_id).join(Subject).order_by(Subject.name, Attendance.date).all()
+    if subject_name:
+        records = [record for record in records if record.subject and record.subject.name == subject_name]
     grouped = {}
     for record in records:
         item = grouped.setdefault(record.subject_id, {
@@ -512,7 +514,12 @@ def render_student_section(section_name):
     title, icon, empty_message = STUDENT_SECTION_CONFIG[section_name]
     material_type = MATERIAL_TYPE_BY_SECTION.get(section_name)
     show_subject_filter = section_name in SUBJECT_FILTER_SECTIONS
-    available_subjects = get_department_subjects(student_profile.department)
+    assigned_subjects = TeacherSubjectAssignment.query.join(Subject).filter(
+        Subject.department == student_profile.department,
+        TeacherSubjectAssignment.semester == student_profile.semester,
+        TeacherSubjectAssignment.division == student_profile.division,
+    ).all()
+    available_subjects = sorted({assignment.subject.name for assignment in assigned_subjects if assignment.subject}, key=str.casefold)
     selected_subject = request.args.get("subject", "").strip()
     if selected_subject not in available_subjects:
         selected_subject = ""
@@ -530,6 +537,10 @@ def render_student_section(section_name):
             material_type=material_type,
             department=student_profile.department,
         )
+        if available_subjects:
+            material_query = material_query.filter(AcademicMaterial.subject.in_(available_subjects))
+        else:
+            material_query = material_query.filter(AcademicMaterial.id == -1)
         if show_subject_filter and selected_subject:
             material_query = material_query.filter_by(subject=selected_subject)
         academic_materials = material_query.order_by(
@@ -543,6 +554,10 @@ def render_student_section(section_name):
         student_results = StudentResult.query.filter_by(
             student_user_id=user.id
         ).order_by(StudentResult.updated_at.desc()).all()
+        if selected_subject:
+            student_results = [result for result in student_results if result.subject == selected_subject]
+        else:
+            student_results = [result for result in student_results if result.subject in available_subjects]
         percentages = []
         for result in student_results:
             try:
@@ -553,7 +568,9 @@ def render_student_section(section_name):
         if percentages:
             internal_average = round(sum(percentages) / len(percentages), 2)
     if section_name == "attendance":
-        attendance_summary, _ = get_attendance_summary(user.id)
+        attendance_summary, _ = get_attendance_summary(user.id, selected_subject)
+        if not selected_subject:
+            attendance_summary = [item for item in attendance_summary if item["subject"] in available_subjects]
     if section_name == "final_results":
         final_result_documents = StudentFinalResult.query.filter_by(student_user_id=user.id).order_by(StudentFinalResult.uploaded_at.desc()).all()
     if section_name == "library":
@@ -608,7 +625,7 @@ def render_student_section(section_name):
     )
 
 
-def render_role_section(role, section_name, table_rows=None, row_ids=None, search_query=""):
+def render_role_section(role, section_name, table_rows=None, row_ids=None, search_query="", material_ids=None):
     user = get_current_user_for_role(role)
     if not user:
         flash("Access denied!")
@@ -628,6 +645,7 @@ def render_role_section(role, section_name, table_rows=None, row_ids=None, searc
         table_headers=headers,
         table_rows=table_rows or [],
         row_ids=row_ids or [],
+        material_ids=material_ids or [],
         search_query=search_query,
         empty_message=empty_message,
     )
@@ -1002,6 +1020,15 @@ def student():
         func.lower(func.trim(WeeklySchedule.teacher)) == user.full_name.strip().lower(),
     ).order_by(WeeklySchedule.start_time).all()
     attendance_overall = get_attendance_summary(user.id)[1]
+    week_start = today.date() - timedelta(days=today.weekday())
+    weekly_attendance = []
+    for day_offset, label in enumerate(("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")):
+        day = week_start + timedelta(days=day_offset)
+        attended = Attendance.query.filter_by(
+            student_user_id=user.id, date=day, status="Present"
+        ).count()
+        weekly_attendance.append({"label": label, "attended": attended})
+    weekly_attendance_max = max((point["attended"] for point in weekly_attendance), default=0)
     internal_results = StudentResult.query.filter_by(student_user_id=user.id, is_internal=True).all()
     internal_percentages = []
     for result in internal_results:
@@ -1034,7 +1061,8 @@ def student():
         pending_assignment_count=pending_assignment_count,
         attendance_percentage=attendance_overall,
         overall_gpa=f"{internal_average}%" if internal_average is not None else None,
-        attendance_overview=[],
+        attendance_overview=weekly_attendance,
+        weekly_attendance_max=weekly_attendance_max,
         grades_overview=[],
         recent_results=recent_results,
         today_schedule=today_schedule,
@@ -1336,18 +1364,104 @@ def teacher():
         return redirect(url_for("teacher"))
 
     today = datetime.today()
+    assigned_subject_ids = {
+        assignment.subject_id
+        for assignment in TeacherSubjectAssignment.query.filter_by(
+            teacher_user_id=user.id
+        ).all()
+    }
     today_lectures = WeeklySchedule.query.filter_by(
         student_user_id=user.id,
         teacher=user.full_name,
         day_of_week=today.weekday(),
     ).order_by(WeeklySchedule.start_time).all()
 
+    # Build the dashboard summary from today's scheduled lectures and the
+    # lecture-wise attendance records already saved by this teacher.
+    lecture_keys = {
+        (lecture.subject.strip().casefold(), lecture.start_time, lecture.end_time)
+        for lecture in today_lectures
+        if lecture.subject and lecture.start_time and lecture.end_time
+    }
+    today_records = Attendance.query.filter_by(
+        teacher_user_id=user.id, date=today.date()
+    ).all()
+    session_records = {}
+    for record in today_records:
+        subject_name = record.subject.name if record.subject else ""
+        key = (subject_name.strip().casefold(), record.start_time, record.end_time)
+        if key in lecture_keys:
+            session_records.setdefault(key, []).append(record)
+    marked_count = len(session_records)
+    attendance_percentages = [
+        (sum(record.status == "Present" for record in records) / len(records)) * 100
+        for records in session_records.values() if records
+    ]
+    attendance_summary = {
+        "today_lectures": len(today_lectures),
+        "attendance_marked": marked_count,
+        "pending": max(len(today_lectures) - marked_count, 0),
+        "average_present": round(sum(attendance_percentages) / len(attendance_percentages)) if attendance_percentages else None,
+        "lectures": [
+            {
+                "subject": lecture.subject,
+                "start_time": lecture.start_time,
+                "end_time": lecture.end_time,
+                "percentage": (
+                    round(
+                        sum(record.status == "Present" for record in session_records.get(
+                            (lecture.subject.strip().casefold(), lecture.start_time, lecture.end_time), []
+                        ))
+                        / len(session_records.get(
+                            (lecture.subject.strip().casefold(), lecture.start_time, lecture.end_time), []
+                        )) * 100
+                    )
+                    if session_records.get((lecture.subject.strip().casefold(), lecture.start_time, lecture.end_time))
+                    else None
+                ),
+            }
+            for lecture in today_lectures
+        ],
+    }
+
+    week_start = today.date() - timedelta(days=today.weekday())
+    week_records = Attendance.query.filter(
+        Attendance.teacher_user_id == user.id,
+        Attendance.subject_id.in_(assigned_subject_ids) if assigned_subject_ids else Attendance.id == -1,
+        Attendance.date >= week_start,
+        Attendance.date <= today.date(),
+    ).order_by(Attendance.id.desc()).all()
+    # Keep the newest row for each lecture/student combination if legacy data
+    # contains duplicates.
+    unique_week_records = []
+    seen_records = set()
+    for record in week_records:
+        key = (record.student_user_id, record.subject_id, record.date, record.start_time, record.end_time)
+        if key not in seen_records:
+            seen_records.add(key)
+            unique_week_records.append(record)
+    daily_records = {}
+    for record in unique_week_records:
+        daily_records.setdefault(record.date, []).append(record)
+    attendance_analytics = []
+    for day_offset in range(7):
+        day = week_start + timedelta(days=day_offset)
+        records = daily_records.get(day, [])
+        attendance_analytics.append({
+            "label": day.strftime("%a"),
+            "percentage": round(sum(r.status == "Present" for r in records) / len(records) * 100, 1) if records else 0,
+        })
+    total_week_records = len(unique_week_records)
+    week_present = sum(record.status == "Present" for record in unique_week_records)
+    average_week_attendance = round(week_present / total_week_records * 100, 1) if total_week_records else None
+
     return render_template(
         "teacher.html",
         current_user=user,
         teacher_profile=teacher_profile,
-        attendance_analytics=[],
-        attendance_summary=None,
+        attendance_analytics=attendance_analytics,
+        average_week_attendance=average_week_attendance,
+        attendance_summary=attendance_summary,
         today_lectures=today_lectures,
         recent_uploads=AcademicMaterial.query.filter_by(
             teacher_user_id=user.id
@@ -1366,6 +1480,8 @@ def teacher_profile():
         "teacher_profile.html",
         current_user=user,
         teacher_profile=profile,
+        nav_items=ROLE_NAV_ITEMS["Teacher"],
+        active_endpoint="teacher_profile",
         active_page="profile",
     )
 
@@ -1703,8 +1819,12 @@ def teacher_materials():
     if not user:
         flash("Access denied!")
         return redirect(url_for("login"))
+    materials = AcademicMaterial.query.filter_by(
+        material_type="Study Material", teacher_user_id=user.id
+    ).order_by(AcademicMaterial.uploaded_at.desc()).all()
     return render_role_section(
-        "Teacher", "materials", material_rows("Study Material", user.id)
+        "Teacher", "materials", material_rows("Study Material", user.id),
+        material_ids=[material.id for material in materials],
     )
 
 
@@ -1714,8 +1834,12 @@ def teacher_assignments():
     if not user:
         flash("Access denied!")
         return redirect(url_for("login"))
+    assignments = AcademicMaterial.query.filter_by(
+        material_type="Assignment", teacher_user_id=user.id
+    ).order_by(AcademicMaterial.uploaded_at.desc()).all()
     return render_role_section(
-        "Teacher", "assignments", material_rows("Assignment", user.id)
+        "Teacher", "assignments", material_rows("Assignment", user.id),
+        material_ids=[assignment.id for assignment in assignments],
     )
 
 
@@ -1903,6 +2027,8 @@ def manage_materials():
     return render_template(
         "manage_materials.html",
         current_user=user,
+        nav_items=ROLE_NAV_ITEMS["Teacher"],
+        active_endpoint="manage_materials",
         teacher_profile=teacher_profile,
         material_types=sorted(MATERIAL_TYPES),
         material_upload_rules=MATERIAL_UPLOAD_RULES,
@@ -1984,6 +2110,20 @@ def teacher_lectures():
         lecture.start_time = request.form.get("start_time", "").strip()
         lecture.end_time = request.form.get("end_time", "").strip()
         lecture.room = request.form.get("room", "").strip() or None
+        assigned_subject_names = {
+            assignment.subject.name
+            for assignment in TeacherSubjectAssignment.query.filter_by(
+                teacher_user_id=user.id
+            ).join(Subject).all()
+            if assignment.subject and assignment.subject.name
+        }
+        valid_schedule_departments = {department.name for department in Department.query.all()}
+        if lecture.department not in valid_schedule_departments:
+            flash("Select a department added by the administrator.")
+            return redirect(url_for("teacher_lectures"))
+        if lecture.subject not in assigned_subject_names:
+            flash("Select a subject assigned to you.")
+            return redirect(url_for("teacher_lectures"))
         if lecture.day_of_week is None or not lecture.subject or not lecture.start_time or not lecture.end_time:
             flash("Day, subject, start time, and end time are required.")
             return redirect(url_for("teacher_lectures"))
@@ -1993,7 +2133,15 @@ def teacher_lectures():
     lectures = WeeklySchedule.query.filter_by(
         student_user_id=user.id, teacher=user.full_name,
     ).order_by(WeeklySchedule.day_of_week, WeeklySchedule.start_time).all()
-    return render_template("dashboard_section.html", current_user=user, role="Teacher", css_file="css/teacher.css", nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint="teacher_lectures", section_title="Weekly Schedule", section_name="lectures", section_icon="fa-calendar-days", table_headers=[], table_rows=[], empty_message="No lectures scheduled yet.", schedules=lectures)
+    teacher_subjects = sorted({
+        assignment.subject.name
+        for assignment in TeacherSubjectAssignment.query.filter_by(
+            teacher_user_id=user.id
+        ).join(Subject).all()
+        if assignment.subject and assignment.subject.name
+    }, key=str.casefold)
+    schedule_departments = [department.name for department in Department.query.order_by(Department.name).all()]
+    return render_template("dashboard_section.html", current_user=user, role="Teacher", css_file="css/teacher.css", nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint="teacher_lectures", section_title="Weekly Schedule", section_name="lectures", section_icon="fa-calendar-days", table_headers=[], table_rows=[], empty_message="No lectures scheduled yet.", schedules=lectures, teacher_subjects=teacher_subjects, schedule_departments=schedule_departments)
 
 
 @app.route("/student/notifications/<int:notification_id>")

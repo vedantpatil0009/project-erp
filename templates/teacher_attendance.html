@@ -18,8 +18,8 @@
     <div class="topbar"><div class="teacher-greeting"><h1>Attendance</h1><p>Mark attendance for your assigned classes.</p></div></div>
     {% with messages = get_flashed_messages() %}{% for message in messages %}<p class="teacher-profile-message">{{ message }}</p>{% endfor %}{% endwith %}
     <section class="box teacher-attendance-entry">
-        <div class="section-heading"><h3>Lecture Details</h3><span>Only assigned subjects are available</span></div>
-        <form class="teacher-attendance-filters" method="GET">
+        <div class="section-heading"><h3>Lecture Filters</h3><span>Only assigned subjects are available</span></div>
+        <form class="teacher-attendance-filters teacher-attendance-review-filters" method="GET">
             <label>Department<select name="department" required><option value="">Select Department</option>{% for department in departments %}<option value="{{ department }}" {% if selected_department == department %}selected{% endif %}>{{ department }}</option>{% endfor %}</select></label>
             <label>Semester<select name="semester" required><option value="">Select Semester</option>{% for semester in semesters %}<option value="{{ semester }}" {% if selected_semester == semester|string %}selected{% endif %}>Semester {{ semester }}</option>{% endfor %}</select></label>
             <label>Division<select name="division" required><option value="">Select Division</option>{% for division in divisions %}<option value="{{ division }}" {% if selected_division == division %}selected{% endif %}>Division {{ division }}</option>{% endfor %}</select></label>
