@@ -30,7 +30,6 @@
             <div class="profile-detail"><span>Email</span><strong>{{ current_user.email or 'Not available' }}</strong></div>
             <div class="profile-detail"><span>Phone Number</span><strong>{{ current_user.phone or 'Not available' }}</strong></div>
             <div class="profile-detail"><span>Employee ID</span><strong>{{ current_user.employee_id or 'Not available' }}</strong></div>
-            <div class="profile-detail"><span>Department</span><strong>{{ teacher_profile.department or 'Not available' }}</strong></div>
             <div class="profile-detail"><span>Subject</span><strong>{{ teacher_profile.subject or 'Not available' }}</strong></div>
         </div>
         <a class="secondary-button" href="{{ url_for('teacher') }}">Back to Dashboard</a>

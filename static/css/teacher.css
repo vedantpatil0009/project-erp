@@ -782,9 +782,67 @@ body.teacher-dashboard-page .teacher-quick-links a{margin-left:0}
     body.teacher-dashboard-page .box table td:last-child form{min-width:86px}
 }
 body.teacher-dashboard-page .teacher-lecture-form{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #edf0f7}
+body.teacher-dashboard-page .teacher-profile-summary-details > div:nth-child(3){display:none}
 body.teacher-dashboard-page .teacher-lecture-form input{min-width:0;padding:9px 10px;border:1px solid #dfe3ef;border-radius:8px;font:inherit;font-size:11px}
 body.teacher-dashboard-page .teacher-lecture-form button{padding:9px 12px;font-size:11px;white-space:nowrap}
 @media(max-width:768px){body.teacher-dashboard-page .teacher-lecture-form{grid-template-columns:1fr 1fr}body.teacher-dashboard-page .teacher-lecture-form button{grid-column:1/-1}}
 @media(max-width:400px){body.teacher-dashboard-page .teacher-lecture-form{grid-template-columns:1fr}}
 body.teacher-section-lectures .teacher-schedule-form,body.teacher-section-lectures .teacher-schedule-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end;margin:16px 0;padding:16px 0;border-bottom:1px solid #edf0f7}body.teacher-section-lectures .teacher-schedule-form label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}body.teacher-section-lectures input,body.teacher-section-lectures select{width:100%;padding:10px;border:1px solid #dfe3ef;border-radius:8px;background:#fff;font:inherit;font-size:12px}body.teacher-section-lectures button{padding:9px 12px;font-size:11px;white-space:nowrap}body.teacher-section-lectures .teacher-schedule-row{grid-template-columns:1.1fr 1.2fr 1.2fr 1fr 1fr 1fr auto auto;margin:0;padding:10px 0}body.teacher-section-lectures .teacher-schedule-row button:last-child{background:#fff;color:#c23b58;border:1px solid #e6b7c2;box-shadow:none}@media(max-width:800px){body.teacher-section-lectures .teacher-schedule-form,body.teacher-section-lectures .teacher-schedule-row{grid-template-columns:1fr 1fr}body.teacher-section-lectures .teacher-schedule-form button{grid-column:1/-1}}@media(max-width:500px){body.teacher-section-lectures .teacher-schedule-form,body.teacher-section-lectures .teacher-schedule-row{grid-template-columns:1fr}}
 body.teacher-section-students .teacher-student-filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:0 0 20px;padding:15px;background:#faf9ff;border:1px solid #ececf5;border-radius:10px}body.teacher-section-students .teacher-student-filters label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}body.teacher-section-students .teacher-student-filters select{min-width:170px;padding:10px;border:1px solid #dfe3ef;border-radius:8px;background:#fff;color:#353557;font:inherit;font-size:12px}body.teacher-section-students .teacher-student-filters button{padding:10px 14px;font-size:12px}@media(max-width:600px){body.teacher-section-students .teacher-student-filters label,body.teacher-section-students .teacher-student-filters select,body.teacher-section-students .teacher-student-filters button{width:100%}}
+
+body.teacher-section-attendance .teacher-attendance-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+body.teacher-section-attendance .teacher-attendance-filters label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}
+body.teacher-section-attendance .teacher-attendance-filters select,body.teacher-section-attendance .teacher-attendance-filters input,body.teacher-section-attendance .attendance-edit-form select{padding:10px;border:1px solid #dfe3ef;border-radius:8px;background:#fff;font:inherit;font-size:12px}
+body.teacher-section-attendance .teacher-attendance-list{display:grid;gap:0}
+body.teacher-section-attendance .teacher-attendance-row{display:grid;grid-template-columns:1.25fr 1.4fr 1fr;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f7}
+body.teacher-section-attendance .teacher-attendance-header{color:#777c9e;font-size:11px;font-weight:600}
+body.teacher-section-attendance .teacher-attendance-row strong{font-size:13px;color:#252744}
+body.teacher-section-attendance .attendance-status-buttons{display:flex;gap:8px;flex-wrap:wrap}
+body.teacher-section-attendance .attendance-status-buttons label{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid #dfe3ef;border-radius:7px;color:#535779;font-size:11px;cursor:pointer}
+body.teacher-section-attendance .attendance-status-buttons input{accent-color:#6338e8}
+body.teacher-section-attendance .teacher-attendance-save-form>button{margin-top:16px}
+body.teacher-section-attendance .teacher-attendance-review-list .teacher-attendance-row{grid-template-columns:1.1fr 1.8fr 1.1fr}
+body.teacher-section-attendance .attendance-edit-form{display:flex;align-items:center;gap:8px;margin:0}
+body.teacher-section-attendance .attendance-edit-form button{padding:9px 12px;font-size:11px}
+body.teacher-section-attendance .teacher-attendance-review-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;margin:4px 0 18px;padding:15px;background:#faf9ff;border:1px solid #ececf5;border-radius:10px}
+body.teacher-section-attendance .teacher-attendance-review-filters label{display:flex;flex-direction:column;gap:6px;color:#777c9e;font-size:11px}
+body.teacher-section-attendance .teacher-attendance-review-filters select,body.teacher-section-attendance .teacher-attendance-review-filters input{padding:10px;border:1px solid #dfe3ef;border-radius:8px;background:#fff;font:inherit;font-size:12px;color:#353557}
+body.teacher-section-attendance .teacher-attendance-lecture-summary{display:flex;flex-wrap:wrap;gap:8px 18px;margin:4px 0 12px;padding:14px;background:#faf9ff;border:1px solid #ececf5;border-radius:10px;color:#777c9e;font-size:12px}
+body.teacher-section-attendance .teacher-attendance-lecture-summary strong{width:100%;color:#252744;font-size:16px}
+body.teacher-section-attendance .attendance-current-status{font-size:12px;font-weight:600}
+body.teacher-section-attendance .status-present{color:#15945b}.status-absent{color:#c13d57}
+body.teacher-section-attendance:not(.teacher-previous-attendance-page) .teacher-attendance-review{display:none}
+@media(max-width:800px){body.teacher-section-attendance .teacher-attendance-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){body.teacher-section-attendance .teacher-attendance-review-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){body.teacher-section-attendance .teacher-attendance-filters{grid-template-columns:1fr}body.teacher-section-attendance .teacher-attendance-row,body.teacher-section-attendance .teacher-attendance-review-list .teacher-attendance-row{grid-template-columns:1fr;gap:8px}body.teacher-section-attendance .teacher-attendance-header{display:none}body.teacher-section-attendance .attendance-edit-form{width:100%}body.teacher-section-attendance .attendance-edit-form select,body.teacher-section-attendance .attendance-edit-form button{flex:1}}
+@media(max-width:600px){body.teacher-section-attendance .teacher-attendance-review-filters{grid-template-columns:1fr}}
+
+/* Match Student Dashboard responsive breakpoints and icon-sidebar behavior. */
+@media(max-width:900px){
+    body.teacher-dashboard-page .sidebar{width:80px;padding:20px 8px}
+    body.teacher-dashboard-page .logo{text-align:center;padding:20px 8px}
+    body.teacher-dashboard-page .logo h2{font-size:14px}
+    body.teacher-dashboard-page .logo h2 span{display:none}
+    body.teacher-dashboard-page .logo small,
+    body.teacher-dashboard-page .sidebar ul li span,
+    body.teacher-dashboard-page .sidebar-profile-details{display:none}
+    body.teacher-dashboard-page .sidebar ul li{justify-content:center;padding:14px 8px}
+    body.teacher-dashboard-page .sidebar-profile{justify-content:center}
+    body.teacher-dashboard-page .main{margin-left:80px;width:calc(100% - 80px);padding:22px 24px 32px}
+    body.teacher-dashboard-page .topbar{flex-direction:column;gap:18px;align-items:flex-start}
+    body.teacher-dashboard-page .teacher-top-grid{grid-template-columns:1fr}
+    body.teacher-dashboard-page .teacher-lower-grid{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+    body.teacher-dashboard-page .main{padding:22px 16px 32px}
+    body.teacher-dashboard-page .topbar h1{font-size:25px}
+    body.teacher-dashboard-page .topbar h2{font-size:25px}
+    body.teacher-dashboard-page .topbar .profile{width:100%}
+    body.teacher-dashboard-page .box,body.teacher-dashboard-page .profile-card{width:100%;padding:18px}
+    body.teacher-dashboard-page .teacher-quick-links div{justify-content:flex-start}
+    body.teacher-dashboard-page .teacher-lecture-item{grid-template-columns:1fr;gap:5px}
+}
+@media(max-width:400px){
+    body.teacher-dashboard-page .sidebar{width:80px;padding:20px 8px}
+    body.teacher-dashboard-page .main{margin-left:80px;width:calc(100% - 80px);padding:22px 16px 32px}
+}

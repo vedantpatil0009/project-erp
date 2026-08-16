@@ -34,6 +34,7 @@ from models.student_result import StudentResult
 from models.student_final_result import StudentFinalResult
 from models.subject import Subject
 from models.teacher_subject_assignment import TeacherSubjectAssignment
+from models.attendance import Attendance
 
 
 app = Flask(__name__)
@@ -152,6 +153,7 @@ ROLE_NAV_ITEMS = {
         ("teacher_profile", "Profile", "fa-circle-user"),
         ("teacher_students", "Students", "fa-users"),
         ("teacher_attendance", "Attendance", "fa-user-check"),
+        ("teacher_previous_attendance", "Previous Attendance", "fa-clock-rotate-left"),
         ("teacher_materials", "Study Material", "fa-book"),
         ("teacher_assignments", "Assignments", "fa-file-lines"),
         ("teacher_lectures", "Manage Weekly Schedule", "fa-calendar-days"),
@@ -478,6 +480,29 @@ def create_material_notifications(material):
     db.session.commit()
 
 
+def get_attendance_summary(student_user_id):
+    """Return subject-wise attendance and the overall percentage from records."""
+    records = Attendance.query.filter_by(student_user_id=student_user_id).join(Subject).order_by(Subject.name, Attendance.date).all()
+    grouped = {}
+    for record in records:
+        item = grouped.setdefault(record.subject_id, {
+            "subject": record.subject.name if record.subject else "Subject unavailable",
+            "present": 0,
+            "total": 0,
+        })
+        item["total"] += 1
+        if record.status == "Present":
+            item["present"] += 1
+    summaries = []
+    for item in grouped.values():
+        item["percentage"] = round(item["present"] / item["total"] * 100, 2) if item["total"] else 0
+        summaries.append(item)
+    total = sum(item["total"] for item in summaries)
+    present = sum(item["present"] for item in summaries)
+    overall = round(present / total * 100, 2) if total else None
+    return summaries, overall
+
+
 def render_student_section(section_name):
     user, student_profile = get_current_student_profile()
     if not user:
@@ -498,6 +523,7 @@ def render_student_section(section_name):
     final_result_documents = []
     course_rows = []
     schedules = []
+    attendance_summary = []
     internal_average = None
     if material_type and student_profile.department:
         material_query = AcademicMaterial.query.filter_by(
@@ -526,6 +552,8 @@ def render_student_section(section_name):
                 continue
         if percentages:
             internal_average = round(sum(percentages) / len(percentages), 2)
+    if section_name == "attendance":
+        attendance_summary, _ = get_attendance_summary(user.id)
     if section_name == "final_results":
         final_result_documents = StudentFinalResult.query.filter_by(student_user_id=user.id).order_by(StudentFinalResult.uploaded_at.desc()).all()
     if section_name == "library":
@@ -576,6 +604,7 @@ def render_student_section(section_name):
         final_result_documents=final_result_documents,
         course_rows=course_rows,
         schedules=schedules,
+        attendance_summary=attendance_summary,
     )
 
 
@@ -723,7 +752,7 @@ def register():
             flash("Please select a valid registration role.")
             return redirect(url_for("register"))
 
-        if role in {"Student", "Teacher"} and not selected_department_is_valid(department):
+        if role == "Student" and not selected_department_is_valid(department):
             flash("Please select a valid department.")
             return redirect(url_for("register"))
 
@@ -903,7 +932,6 @@ def register():
         elif role == "Teacher":
             db.session.add(Teacher(
                 user_id=new_user.id,
-                department=department
             ))
 
         db.session.commit()
@@ -973,6 +1001,7 @@ def student():
         WeeklySchedule.student_user_id == user.id,
         func.lower(func.trim(WeeklySchedule.teacher)) == user.full_name.strip().lower(),
     ).order_by(WeeklySchedule.start_time).all()
+    attendance_overall = get_attendance_summary(user.id)[1]
     internal_results = StudentResult.query.filter_by(student_user_id=user.id, is_internal=True).all()
     internal_percentages = []
     for result in internal_results:
@@ -1003,7 +1032,7 @@ def student():
         current_user=user,
         student_profile=student_profile,
         pending_assignment_count=pending_assignment_count,
-        attendance_percentage=None,
+        attendance_percentage=attendance_overall,
         overall_gpa=f"{internal_average}%" if internal_average is not None else None,
         attendance_overview=[],
         grades_overview=[],
@@ -1364,15 +1393,9 @@ def edit_teacher_profile():
             flash("Email already registered!")
             return redirect(url_for("edit_teacher_profile"))
 
-        department = request.form.get("department", "").strip()
-        if not selected_department_is_valid(department):
-            flash("Please select a valid department.")
-            return redirect(url_for("edit_teacher_profile"))
-
         user.full_name = full_name
         user.email = email
         user.phone = request.form.get("phone", "").strip() or None
-        profile.department = department
         profile.subject = request.form.get("subject", "").strip() or None
         db.session.commit()
 
@@ -1383,7 +1406,6 @@ def edit_teacher_profile():
         "edit_teacher_profile.html",
         current_user=user,
         teacher_profile=profile,
-        departments=get_departments(),
         active_page="profile",
     )
 
@@ -1425,14 +1447,253 @@ def teacher_students():
     return render_template("dashboard_section.html", current_user=user, role="Teacher", css_file="css/teacher.css", nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint=request.endpoint, section_title="Students", section_name="students", section_icon="fa-users", table_headers=ROLE_SECTION_CONFIG["Teacher"]["students"][2], table_rows=rows, empty_message=ROLE_SECTION_CONFIG["Teacher"]["students"][3], student_semesters=semester_values, student_departments=department_values, selected_semester=selected_semester, selected_department=selected_department)
 
 
-@app.route("/teacher/attendance")
+@app.route("/teacher/previous-attendance", methods=["GET", "POST"])
+def teacher_previous_attendance():
+    user = get_current_user_for_role("Teacher")
+    if not user:
+        flash("Access denied!")
+        return redirect(url_for("login"))
+
+    assignments = TeacherSubjectAssignment.query.join(Subject).filter(
+        TeacherSubjectAssignment.teacher_user_id == user.id
+    ).all()
+    departments = sorted({a.subject.department for a in assignments}, key=str.casefold)
+    selected_department = request.values.get("department", "").strip()
+    selected_semester = request.values.get("semester", "").strip()
+    selected_division = request.values.get("division", "").strip().upper()
+    selected_subject_id = request.values.get("subject_id", type=int)
+    selected_date = request.values.get("attendance_date", "")
+    selected_start = request.values.get("start_time", "")
+    selected_end = request.values.get("end_time", "")
+    load = request.values.get("load") == "1"
+    valid_semester = selected_semester.isdigit() and int(selected_semester) in range(1, 9)
+    valid_division = selected_division in {"A", "B", "C"}
+    filtered = [a for a in assignments if
+                (not selected_department or a.subject.department == selected_department) and
+                (not selected_semester or (valid_semester and a.semester == int(selected_semester))) and
+                (not selected_division or (valid_division and a.division == selected_division))]
+    subject_options = sorted({a.subject.id: a.subject for a in filtered}.values(), key=lambda s: s.name.casefold())
+    selected_assignment = next((a for a in filtered if a.subject_id == selected_subject_id), None)
+    attendance_records = []
+
+    if request.method == "POST" and request.form.get("action") == "edit":
+        record = Attendance.query.filter_by(
+            id=request.form.get("record_id", type=int), teacher_user_id=user.id
+        ).first_or_404()
+        status = request.form.get("status", "")
+        if status not in {"Present", "Absent"}:
+            flash("Select a valid attendance status.")
+        else:
+            record.status = status
+            db.session.commit()
+            flash("Attendance updated successfully.")
+        return redirect(url_for("teacher_previous_attendance", department=selected_department,
+                                semester=selected_semester, division=selected_division,
+                                subject_id=selected_subject_id, attendance_date=selected_date,
+                                start_time=selected_start, end_time=selected_end, load=1))
+
+    lecture_date = None
+    if load and selected_assignment and selected_date and selected_start and selected_end:
+        try:
+            lecture_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+        except ValueError:
+            lecture_date = None
+        if lecture_date:
+            attendance_records = Attendance.query.filter_by(
+                teacher_user_id=user.id, subject_id=selected_assignment.subject_id,
+                date=lecture_date, start_time=selected_start, end_time=selected_end
+            ).order_by(Attendance.student_user_id).all()
+
+    return render_template("teacher_previous_attendance.html", current_user=user, role="Teacher",
+        nav_items=ROLE_NAV_ITEMS["Teacher"], active_endpoint="teacher_previous_attendance",
+        departments=departments, semesters=range(1, 9), divisions=("A", "B", "C"),
+        subject_options=subject_options, selected_department=selected_department,
+        selected_semester=selected_semester, selected_division=selected_division,
+        selected_subject_id=selected_subject_id, selected_date=selected_date,
+        selected_start=selected_start, selected_end=selected_end, load=load,
+        selected_assignment=selected_assignment, attendance_records=attendance_records)
+
+
+@app.route("/teacher/attendance", methods=["GET", "POST"])
 def teacher_attendance():
     user = get_current_user_for_role("Teacher")
     if not user:
         flash("Access denied!")
         return redirect(url_for("login"))
-    return render_role_section(
-        "Teacher", "attendance", material_rows("Attendance", user.id)
+    teacher_assignments = TeacherSubjectAssignment.query.join(Subject).filter(
+        TeacherSubjectAssignment.teacher_user_id == user.id
+    ).all()
+    department_values = sorted({a.subject.department for a in teacher_assignments}, key=str.casefold)
+    selected_department = request.values.get("department", "").strip()
+    selected_semester = request.values.get("semester", "").strip()
+    selected_division = request.values.get("division", "").strip().upper()
+    selected_subject_id = request.values.get("subject_id", type=int)
+    selected_date = request.values.get("attendance_date", datetime.today().strftime("%Y-%m-%d"))
+    date_filter_requested = bool(request.values.get("attendance_date"))
+    selected_start = request.values.get("start_time", "")
+    selected_end = request.values.get("end_time", "")
+    load_students = request.values.get("load") == "1"
+    review_requested = request.values.get("review") == "1"
+
+    valid_semester = selected_semester.isdigit() and int(selected_semester) in range(1, 9)
+    valid_division = selected_division in {"A", "B", "C"}
+    filtered_assignments = [
+        assignment for assignment in teacher_assignments
+        if (not selected_department or assignment.subject.department == selected_department)
+        and (not selected_semester or (valid_semester and assignment.semester == int(selected_semester)))
+        and (not selected_division or (valid_division and assignment.division == selected_division))
+    ]
+    subject_options = sorted(
+        {assignment.subject.id: assignment.subject for assignment in filtered_assignments}.values(),
+        key=lambda subject: subject.name.casefold(),
+    )
+    selected_assignment = next(
+        (assignment for assignment in filtered_assignments if assignment.subject_id == selected_subject_id),
+        None,
+    )
+    review_subject_ids = {assignment.subject_id for assignment in filtered_assignments}
+    attendance_records = []
+
+    if request.method == "POST" and request.form.get("action") == "edit":
+        record = Attendance.query.filter_by(
+            id=request.form.get("record_id", type=int),
+            teacher_user_id=user.id,
+        ).first_or_404()
+        status = request.form.get("status", "")
+        if status not in {"Present", "Absent"}:
+            flash("Select a valid attendance status.")
+        else:
+            record.status = status
+            db.session.commit()
+            flash("Attendance updated successfully.")
+        return redirect(url_for(
+            "teacher_attendance",
+            department=selected_department,
+            semester=selected_semester,
+            division=selected_division,
+            subject_id=selected_subject_id,
+            attendance_date=selected_date,
+            start_time=selected_start,
+            end_time=selected_end,
+            review=1,
+        ))
+
+    students = []
+    if load_students and selected_assignment and valid_semester and valid_division and selected_department:
+        students = [
+            (db.session.get(User, profile.user_id), profile)
+            for profile in Student.query.filter_by(
+                department=selected_department,
+                semester=int(selected_semester),
+                division=selected_division,
+            ).order_by(Student.user_id).all()
+        ]
+        students = [(student_user, profile) for student_user, profile in students if student_user and student_user.role == "Student"]
+
+    if request.method == "POST":
+        # Attendance is posted through the same section form; validate every
+        # relationship again so a teacher cannot submit another teacher's subject.
+        if not selected_assignment or not selected_department or not valid_semester or not valid_division:
+            flash("Select a valid assigned subject, department, semester, and division.")
+        elif not selected_date or not selected_start or not selected_end:
+            flash("Date, start time, and end time are required.")
+        else:
+            try:
+                lecture_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+            except ValueError:
+                lecture_date = None
+            if lecture_date is None:
+                flash("Select a valid lecture date.")
+            elif selected_end <= selected_start:
+                flash("End time must be after start time.")
+            else:
+                student_ids = {student_user.id for student_user, _ in students}
+                submitted_ids = set()
+                for key, status in request.form.items():
+                    if not key.startswith("status_") or status not in {"Present", "Absent"}:
+                        continue
+                    try:
+                        student_id = int(key.removeprefix("status_"))
+                    except ValueError:
+                        continue
+                    if student_id not in student_ids:
+                        continue
+                    submitted_ids.add(student_id)
+                    record = Attendance.query.filter_by(
+                        student_user_id=student_id,
+                        teacher_user_id=user.id,
+                        subject_id=selected_assignment.subject_id,
+                        date=lecture_date,
+                        start_time=selected_start,
+                        end_time=selected_end,
+                    ).first()
+                    if record is None:
+                        record = Attendance(
+                            student_user_id=student_id,
+                            teacher_user_id=user.id,
+                            subject_id=selected_assignment.subject_id,
+                            date=lecture_date,
+                            start_time=selected_start,
+                            end_time=selected_end,
+                        )
+                        db.session.add(record)
+                    record.status = status
+                if submitted_ids != student_ids:
+                    flash("Mark Present or Absent for every listed student.")
+                else:
+                    db.session.commit()
+                    flash("Attendance saved successfully.")
+        return redirect(url_for(
+            "teacher_attendance",
+            department=selected_department,
+            semester=selected_semester,
+            division=selected_division,
+            subject_id=selected_subject_id,
+            attendance_date=selected_date,
+            start_time=selected_start,
+            end_time=selected_end,
+        ))
+
+    if review_requested and review_subject_ids and selected_assignment and selected_date and selected_start and selected_end:
+        attendance_query = Attendance.query.filter(
+            Attendance.teacher_user_id == user.id,
+            Attendance.subject_id.in_(review_subject_ids),
+        )
+        if date_filter_requested:
+            try:
+                review_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+                attendance_query = attendance_query.filter(Attendance.date == review_date)
+            except ValueError:
+                pass
+        attendance_query = attendance_query.filter(
+            Attendance.start_time == selected_start,
+            Attendance.end_time == selected_end,
+        )
+        attendance_records = attendance_query.order_by(
+            Attendance.date.desc(), Attendance.start_time, Attendance.id
+        ).all()
+
+    return render_template(
+        "teacher_attendance.html",
+        current_user=user,
+        role="Teacher",
+        nav_items=ROLE_NAV_ITEMS["Teacher"],
+        active_endpoint="teacher_attendance",
+        departments=department_values,
+        semesters=range(1, 9),
+        divisions=("A", "B", "C"),
+        subject_options=subject_options,
+        students=students,
+        selected_department=selected_department,
+        selected_semester=selected_semester,
+        selected_division=selected_division,
+        selected_subject_id=selected_subject_id,
+        selected_date=selected_date,
+        selected_start=selected_start,
+        selected_end=selected_end,
+        load_students=load_students,
+        attendance_records=attendance_records,
+        review_requested=review_requested,
     )
 
 
@@ -1772,14 +2033,45 @@ def parent():
         )
 
     connected_students = get_parent_connected_students(user)
+    requested_student_id = request.args.get("student_id", type=int)
+    selected_student = get_parent_connected_student(user, requested_student_id)
+    if requested_student_id and not selected_student:
+        flash("You can only view connected students.")
+        return redirect(url_for("parent"))
+    if not selected_student and connected_students:
+        selected_student = connected_students[0]
     attendance_student_name = None
     recent_results = []
     upcoming_events = []
     performance_average = None
-    if connected_students:
-        student_user = connected_students[0][0]
-        student_profile = connected_students[0][1]
+    overall_attendance = None
+    today_attendance_by_student = []
+    if selected_student:
+        student_user = selected_student[0]
+        student_profile = selected_student[1]
         attendance_student_name = student_user.full_name
+        overall_attendance = get_attendance_summary(student_user.id)[1]
+        today = datetime.today().date()
+        for child_user, _child_profile in [selected_student]:
+            records = Attendance.query.filter_by(
+                student_user_id=child_user.id,
+                date=today,
+            ).order_by(Attendance.start_time.desc()).all()
+            if records:
+                present_count = sum(record.status == "Present" for record in records)
+                total_count = len(records)
+                status = "Present" if present_count > 0 else "Absent"
+            else:
+                present_count = 0
+                total_count = 0
+                status = "Not Marked"
+            today_attendance_by_student.append({
+                "name": child_user.full_name,
+                "status": status,
+                "present": present_count,
+                "total": total_count,
+                "date": today.strftime("%d %b %Y"),
+            })
         for result in StudentResult.query.filter_by(
             student_user_id=student_user.id
         ).order_by(StudentResult.updated_at.desc()).limit(5).all():
@@ -1822,9 +2114,12 @@ def parent():
         "parent.html",
         current_user=user,
         connected_students=connected_students,
+        selected_student_id=selected_student[0].id if selected_student else None,
+        parent_student_options=[{"id": child.id, "name": child.full_name, "enrollment": child.enrollment_no or ""} for child, _ in connected_students],
         attendance_student_name=attendance_student_name,
-        today_attendance=None,
-        overall_attendance=None,
+        today_attendance=today_attendance_by_student[0] if today_attendance_by_student else None,
+        today_attendance_by_student=today_attendance_by_student,
+        overall_attendance=overall_attendance,
         recent_results=recent_results,
         upcoming_events=upcoming_events,
         performance_average=performance_average,
@@ -1944,6 +2239,7 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
     materials = []
     student_results = []
     notifications = []
+    attendance_summary = []
     if selected_student:
         student_user, student_profile = selected_student
         if material_type == "Result":
@@ -1951,10 +2247,13 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
                 student_user_id=student_user.id
             ).order_by(StudentResult.updated_at.desc()).all()
         elif material_type != "Notice":
-            materials = AcademicMaterial.query.filter_by(
-                material_type=material_type,
-                department=student_profile.department,
-            ).order_by(AcademicMaterial.uploaded_at.desc()).all()
+            if material_type == "Attendance":
+                attendance_summary = get_attendance_summary(student_user.id)[0]
+            else:
+                materials = AcademicMaterial.query.filter_by(
+                    material_type=material_type,
+                    department=student_profile.department,
+                ).order_by(AcademicMaterial.uploaded_at.desc()).all()
     if material_type == "Notice":
         connected_ids = [student_user.id for student_user, _ in connected_students]
         if connected_ids:
@@ -1970,6 +2269,7 @@ def render_parent_academic_section(material_type, title, icon, empty_message):
         materials=materials,
         student_results=student_results,
         notifications=notifications,
+        attendance_summary=attendance_summary,
         section_title=title,
         section_icon=icon,
         empty_message=empty_message,

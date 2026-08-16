@@ -5,3 +5,33 @@
 {% with messages = get_flashed_messages() %}{% for message in messages %}<p>{{ message }}</p>{% endfor %}{% endwith %}
 <section class="box full"><h3>Connect Student</h3><form method="POST" action="{{ url_for('connect_parent_student') }}"><input type="text" name="enrollment_no" placeholder="Student Enrollment Number" required><button type="submit">Connect Student</button></form></section>
 <section class="box full"><h3>Connected Students</h3>{% if connected_students %}<table><tr><th>Name</th><th>Enrollment Number</th><th>Department</th><th>Semester</th><th>Division</th></tr>{% for student_user, student_profile in connected_students %}<tr><td>{{ student_user.full_name }}</td><td>{{ student_user.enrollment_no or 'Not available' }}</td><td>{{ student_profile.department or 'Not available' }}</td><td>{{ student_profile.semester or 'Not available' }}</td><td>{{ student_profile.division or 'Not available' }}</td></tr>{% endfor %}</table>{% else %}<p>No student is connected to this parent account.</p>{% endif %}</section></main><script src="{{ url_for('static', filename='js/parent.js') }}"></script></body></html>
+<script type="application/json" id="parent-today-attendance">{{ today_attendance_by_student|tojson }}</script>
+<script type="application/json" id="parent-student-options">{{ parent_student_options|tojson }}</script>
+<script>
+setTimeout(function () {
+    var node = document.getElementById('parent-student-options');
+    var cards = document.querySelector('.parent-overview-cards');
+    if (!node || !cards || document.querySelector('.parent-dashboard-student-selector')) return;
+    var children = [];
+    try { children = JSON.parse(node.textContent || '[]'); } catch (error) { return; }
+    if (!children.length) return;
+    var wrapper = document.createElement('section');
+    wrapper.className = 'box parent-dashboard-student-selector';
+    wrapper.innerHTML = '<label for="parent-dashboard-student">Select Student</label><select id="parent-dashboard-student"></select>';
+    var select = wrapper.querySelector('select');
+    var current = new URLSearchParams(window.location.search).get('student_id') || String(children[0].id);
+    children.forEach(function (child) {
+        var option = document.createElement('option');
+        option.value = child.id;
+        option.textContent = child.name + (child.enrollment ? ' (' + child.enrollment + ')' : '');
+        option.selected = String(child.id) === String(current);
+        select.appendChild(option);
+    });
+    select.addEventListener('change', function () {
+        var params = new URLSearchParams(window.location.search);
+        params.set('student_id', select.value);
+        window.location.search = params.toString();
+    });
+    cards.parentNode.insertBefore(wrapper, cards);
+}, 0);
+</script>

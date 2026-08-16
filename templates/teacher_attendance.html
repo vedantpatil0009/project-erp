@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance | EduSphere ERP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="teacher-dashboard-page teacher-section-attendance theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
+<div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Teacher Portal</small></div><ul>
+{% for endpoint, label, icon in nav_items if endpoint != 'teacher_profile' %}<li class="{% if endpoint == active_endpoint %}active{% endif %}" onclick="window.location.href='{{ url_for(endpoint) }}'"><i class="fa-solid {{ icon }}"></i><span>{{ label }}</span></li>{% endfor %}
+<li class="sidebar-profile" onclick="window.location.href='{{ url_for('teacher_profile') }}'"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.employee_id or 'Employee ID unavailable' }}</small></div></li>
+<li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>
+</ul></div>
+<main class="main">
+    <div class="topbar"><div class="teacher-greeting"><h1>Attendance</h1><p>Mark attendance for your assigned classes.</p></div></div>
+    {% with messages = get_flashed_messages() %}{% for message in messages %}<p class="teacher-profile-message">{{ message }}</p>{% endfor %}{% endwith %}
+    <section class="box teacher-attendance-entry">
+        <div class="section-heading"><h3>Lecture Details</h3><span>Only assigned subjects are available</span></div>
+        <form class="teacher-attendance-filters" method="GET">
+            <label>Department<select name="department" required><option value="">Select Department</option>{% for department in departments %}<option value="{{ department }}" {% if selected_department == department %}selected{% endif %}>{{ department }}</option>{% endfor %}</select></label>
+            <label>Semester<select name="semester" required><option value="">Select Semester</option>{% for semester in semesters %}<option value="{{ semester }}" {% if selected_semester == semester|string %}selected{% endif %}>Semester {{ semester }}</option>{% endfor %}</select></label>
+            <label>Division<select name="division" required><option value="">Select Division</option>{% for division in divisions %}<option value="{{ division }}" {% if selected_division == division %}selected{% endif %}>Division {{ division }}</option>{% endfor %}</select></label>
+            <label>Subject<select name="subject_id" required><option value="">Select Subject</option>{% for subject in subject_options %}<option value="{{ subject.id }}" {% if selected_subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>{% endfor %}</select></label>
+            <label>Date<input type="date" name="attendance_date" value="{{ selected_date }}"></label>
+            <label>Start Time<input type="time" name="start_time" value="{{ selected_start }}"></label>
+            <label>End Time<input type="time" name="end_time" value="{{ selected_end }}"></label>
+            <input type="hidden" name="load" value="1"><button type="submit">Load Students</button>
+        </form>
+    </section>
+    {% if load_students and selected_subject_id and selected_department and selected_semester and selected_division %}
+    <section class="box teacher-attendance-entry">
+        <div class="section-heading"><h3>Student Attendance</h3><span>{{ students|length }} student{{ '' if students|length == 1 else 's' }}</span></div>
+        {% if students %}<form method="POST" class="teacher-attendance-save-form">
+            <input type="hidden" name="load" value="1"><input type="hidden" name="department" value="{{ selected_department }}"><input type="hidden" name="semester" value="{{ selected_semester }}"><input type="hidden" name="division" value="{{ selected_division }}"><input type="hidden" name="subject_id" value="{{ selected_subject_id }}"><input type="hidden" name="attendance_date" value="{{ selected_date }}"><input type="hidden" name="start_time" value="{{ selected_start }}"><input type="hidden" name="end_time" value="{{ selected_end }}">
+            <div class="teacher-attendance-list"><div class="teacher-attendance-row teacher-attendance-header"><strong>Student</strong><span>Enrollment Number</span><span>Status</span></div>{% for student_user, profile in students %}<div class="teacher-attendance-row"><strong>{{ student_user.full_name }}</strong><span>{{ student_user.enrollment_no or 'Not available' }}</span><div class="attendance-status-buttons"><label><input type="radio" name="status_{{ student_user.id }}" value="Present" required><span>Present</span></label><label><input type="radio" name="status_{{ student_user.id }}" value="Absent"><span>Absent</span></label></div></div>{% endfor %}</div>
+            <button type="submit">Save Attendance</button>
+        </form>{% else %}<p>No students match the selected Department, Semester, and Division.</p>{% endif %}
+    </section>
+    {% else %}<section class="box teacher-attendance-empty"><p>Select Department, Semester, Division, and Subject to load students.</p></section>{% endif %}
+    <section class="box teacher-attendance-review">
+        <div class="section-heading"><h3>Previous Attendance</h3><span>Edit only your records</span></div>
+        {% if attendance_records %}<div class="teacher-attendance-list teacher-attendance-review-list"><div class="teacher-attendance-row teacher-attendance-header"><strong>Student</strong><span>Subject · Date · Time</span><span>Status</span><span>Action</span></div>{% for record in attendance_records %}<div class="teacher-attendance-row"><strong>{{ record.student.full_name if record.student else 'Student unavailable' }}</strong><span>{{ record.subject.name if record.subject else 'Subject unavailable' }} · {{ record.date.strftime('%d %b %Y') }} · {{ record.start_time }}–{{ record.end_time }}</span><form method="POST" class="attendance-edit-form"><input type="hidden" name="action" value="edit"><input type="hidden" name="record_id" value="{{ record.id }}"><input type="hidden" name="department" value="{{ selected_department }}"><input type="hidden" name="semester" value="{{ selected_semester }}"><input type="hidden" name="division" value="{{ selected_division }}"><input type="hidden" name="subject_id" value="{{ selected_subject_id or '' }}"><input type="hidden" name="attendance_date" value="{{ selected_date }}"><select name="status"><option value="Present" {% if record.status == 'Present' %}selected{% endif %}>Present</option><option value="Absent" {% if record.status == 'Absent' %}selected{% endif %}>Absent</option></select><button type="submit">Save</button></form></div>{% endfor %}</div>{% else %}<p>No attendance records match the selected filters.</p>{% endif %}
+    </section>
+</main>
+<script src="{{ url_for('static', filename='js/teacher.js') }}"></script>
+</body>
+</html>

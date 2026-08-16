@@ -49,7 +49,9 @@
                 </select>
             </form>
         {% endif %}
-        {% if active_page == 'notices' and notifications %}
+        {% if active_page == 'attendance' %}
+            {% if attendance_summary %}<table><tr><th>Subject</th><th>Present Lectures</th><th>Total Lectures</th><th>Percentage</th></tr>{% for item in attendance_summary %}<tr><td>{{ item.subject }}</td><td>{{ item.present }}</td><td>{{ item.total }}</td><td>{{ item.percentage }}%</td></tr>{% endfor %}</table>{% else %}<div class="overview-placeholder"><i class="fa-solid fa-calendar-xmark"></i><p>No attendance records available.</p></div>{% endif %}
+        {% elif active_page == 'notices' and notifications %}
             <div class="notification-list">
                 {% for notification in notifications %}
                     <a class="notification-item{% if not notification.read_at %} unread{% endif %}" href="{{ url_for('open_student_notification', notification_id=notification.id) }}">

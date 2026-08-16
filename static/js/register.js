@@ -13,7 +13,7 @@ const parentEmailInput = document.getElementById("registrationParentEmail");
 
 function updateRoleIdField() {
     const selectedRole = roleSelect.value;
-    const departmentRequired = selectedRole === "Student" || selectedRole === "Teacher";
+    const departmentRequired = selectedRole === "Student";
 
     roleIdFields.forEach(field => {
         const isSelectedRole = field.dataset.role === selectedRole;

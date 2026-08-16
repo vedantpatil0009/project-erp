@@ -26,6 +26,14 @@ if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-schedule-link
     const logoutItem = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Logout");
     teacherSidebar.insertBefore(scheduleItem, materialsItem || logoutItem || null);
 }
+if (teacherSidebar && !teacherSidebar.querySelector('[data-teacher-previous-attendance-link]') && !Array.from(teacherSidebar.children).some(item => item.textContent.trim() === "Previous Attendance")) {
+    const previousAttendanceItem = document.createElement("li");
+    previousAttendanceItem.setAttribute("data-teacher-previous-attendance-link", "true");
+    previousAttendanceItem.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i><span>Previous Attendance</span>';
+    previousAttendanceItem.addEventListener("click", () => { window.location.href = "/teacher/previous-attendance"; });
+    const attendanceItem = Array.from(teacherSidebar.children).find(item => item.textContent.trim() === "Attendance");
+    teacherSidebar.insertBefore(previousAttendanceItem, attendanceItem ? attendanceItem.nextSibling : null);
+}
 
 const lectureHeading = document.querySelector(".teacher-lectures .section-heading");
 if (lectureHeading && !lectureHeading.querySelector(".edit-lectures-link")) {
@@ -85,58 +93,6 @@ bars.forEach(bar => {
     },300);
 
 });
-
-// Quick Action Buttons
-
-const buttons = document.querySelectorAll("button");
-
-buttons.forEach(button => {
-
-    button.addEventListener("click", function(){
-
-        const text = this.innerText;
-
-        if(text === "Mark Attendance"){
-            alert("Attendance page will open.");
-        }
-
-        else if(text === "Upload Assignment"){
-            alert("Assignment upload page will open.");
-        }
-
-        else if(text === "Upload Notes"){
-            alert("Study material upload page will open.");
-        }
-
-        else if(text === "Enter Marks"){
-            alert("Marks entry page will open.");
-        }
-
-        else{
-            alert("Feature coming soon.");
-        }
-
-    });
-
-});
-
-// Assignment Upload Form
-
-const form = document.querySelector("form");
-
-if(form){
-
-    form.addEventListener("submit", function(e){
-
-        e.preventDefault();
-
-        alert("Assignment Uploaded Successfully!");
-
-        form.reset();
-
-    });
-
-}
 
 // Student Table Hover
 

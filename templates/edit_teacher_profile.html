@@ -27,7 +27,6 @@
         <div><label for="email">Email</label><input id="email" type="email" name="email" value="{{ current_user.email or '' }}" required></div>
         <div><label for="phone">Phone Number</label><input id="phone" type="tel" name="phone" value="{{ current_user.phone or '' }}"></div>
         <div><label for="employee_id">Employee ID</label><input id="employee_id" value="{{ current_user.employee_id or '' }}" readonly></div>
-        <div><label for="department">Department</label><select id="department" name="department" required><option value="">Select Department</option>{% for department in departments %}<option value="{{ department.name }}" {% if department.name == teacher_profile.department %}selected{% endif %}>{{ department.name }}</option>{% endfor %}</select></div>
         <div><label for="subject">Subject</label><input id="subject" name="subject" value="{{ teacher_profile.subject or '' }}"></div>
         <div class="profile-actions full-width"><a class="secondary-button" href="{{ url_for('teacher_profile') }}">Cancel</a><button type="submit">Save Changes</button></div>
     </form></section>
