@@ -1,6 +1,6 @@
 // ===============================
 // Teacher Dashboard Script
-// EduSphere ERP
+// Educon
 // ===============================
 
 // Sidebar Active Menu
@@ -122,6 +122,6 @@ rows.forEach((row,index)=>{
 
 window.onload = () => {
 
-    console.log("Welcome to EduSphere Teacher Dashboard");
+    console.log("Welcome to Educon Teacher Dashboard");
 
 };

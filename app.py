@@ -2,6 +2,7 @@ import os
 import uuid
 import calendar as calendar_module
 from datetime import datetime, timedelta
+import flask
 
 from flask import (
     Flask,
@@ -16,6 +17,7 @@ from flask import (
 )
 
 from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, current_user, login_user, logout_user
 from sqlalchemy import func, inspect, text
 from werkzeug.utils import secure_filename
 
@@ -44,6 +46,24 @@ app.config.from_object(Config)
 db.init_app(app)
 
 bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        return db.session.get(User, int(user_id))
+    except (TypeError, ValueError):
+        return None
+
+
+@app.before_request
+def restore_application_session():
+    """Keep the existing role-based session in sync with Flask-Login."""
+    if current_user.is_authenticated:
+        session["user_id"] = current_user.id
+        session["role"] = current_user.role
 
 
 ROLE_IDENTIFIER_FIELDS = {
@@ -698,8 +718,14 @@ def landing():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
+    if request.method == "GET" and current_user.is_authenticated:
+        return redirect(url_for(ROLE_DASHBOARD_ENDPOINTS[current_user.role]))
+
     if request.method == "POST":
 
+        # Clear any prior Flask-Login state (including an old remember cookie)
+        # before starting this login attempt.
+        logout_user()
         session.clear()
         login_id = request.form.get("login_id", "").strip()
         password = request.form.get("password", "")
@@ -724,6 +750,8 @@ def login():
 
         if password_matches:
             session.clear()
+            remember = request.form.get("remember_me") == "on"
+            login_user(user, remember=remember)
             session["user_id"] = user.id
             session["role"] = user.role
             return redirect(url_for(ROLE_DASHBOARD_ENDPOINTS[user.role]))
@@ -735,6 +763,11 @@ def login():
         )
 
     return render_template("login.html")
+
+
+@app.route("/forgot-password")
+def forgot_password():
+    return render_template("forgot_password.html")
 
 
 # ==========================================
@@ -1850,10 +1883,15 @@ def manage_materials():
         flash("Access denied!")
         return redirect(url_for("login"))
 
+    # A newly registered teacher has a profile row, but may not have a
+    # department or subject assignment yet.  Those are managed separately by
+    # the admin, so they must not prevent the Manage Materials section from
+    # opening.
     teacher_profile = Teacher.query.filter_by(user_id=user.id).first()
-    if not teacher_profile or not teacher_profile.department:
-        flash("Set your department before managing materials.")
-        return redirect(url_for("teacher"))
+    if not teacher_profile:
+        teacher_profile = Teacher(user_id=user.id)
+        db.session.add(teacher_profile)
+        db.session.commit()
 
     result_department = request.args.get("result_department", "").strip()
     result_semester = request.args.get("result_semester", "").strip()
@@ -2808,15 +2846,23 @@ def admin_subject_assignments():
 @app.route("/logout")
 def logout():
 
+    logout_user()
     session.clear()
 
     flash(
         "You have been logged out."
     )
 
-    return redirect(
-        url_for("login")
+    response = redirect(url_for("login"))
+    # Flask-Login normally schedules this deletion through its response hook.
+    # Delete it explicitly as well so the remember token cannot restore this
+    # account after a manual logout, regardless of cookie configuration.
+    response.delete_cookie(
+        app.config.get("REMEMBER_COOKIE_NAME", "remember_token"),
+        path=app.config.get("REMEMBER_COOKIE_PATH", "/"),
+        domain=app.config.get("REMEMBER_COOKIE_DOMAIN"),
     )
+    return response
 
 
 # ==========================================

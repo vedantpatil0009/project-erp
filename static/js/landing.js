@@ -1,9 +1,42 @@
-// Mobile menu placeholder
 const menu = document.getElementById("menu");
+const mobileMenu = document.getElementById("mobile-menu-panel");
+const mobileMenuIcon = menu ? menu.querySelector("i") : null;
 
-menu.addEventListener("click", () => {
-    alert("Mobile menu will be added in the complete version.");
-});
+if (menu && mobileMenu) {
+    menu.addEventListener("click", () => {
+        const isOpen = mobileMenu.classList.toggle("open");
+        mobileMenu.setAttribute("aria-hidden", String(!isOpen));
+        menu.setAttribute("aria-expanded", String(isOpen));
+        if (mobileMenuIcon) {
+            mobileMenuIcon.classList.toggle("fa-bars", !isOpen);
+            mobileMenuIcon.classList.toggle("fa-xmark", isOpen);
+        }
+    });
+
+    mobileMenu.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", () => {
+            mobileMenu.classList.remove("open");
+            mobileMenu.setAttribute("aria-hidden", "true");
+            menu.setAttribute("aria-expanded", "false");
+            if (mobileMenuIcon) {
+                mobileMenuIcon.classList.add("fa-bars");
+                mobileMenuIcon.classList.remove("fa-xmark");
+            }
+        });
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 800) {
+            mobileMenu.classList.remove("open");
+            mobileMenu.setAttribute("aria-hidden", "true");
+            menu.setAttribute("aria-expanded", "false");
+            if (mobileMenuIcon) {
+                mobileMenuIcon.classList.add("fa-bars");
+                mobileMenuIcon.classList.remove("fa-xmark");
+            }
+        }
+    });
+}
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {

@@ -60,7 +60,7 @@ buttons.forEach(button => {
 
 window.onload = () => {
 
-    console.log("Welcome to EduSphere Student Dashboard");
+    console.log("Welcome to Educon Student Dashboard");
 
 };
 

@@ -382,9 +382,19 @@ footer{
     width:8px;
 }
 
-::-webkit-scrollbar-thumb{
-    background:#0f766e;
+::-webkit-scrollbar-track{
+    background:#f4f7fc;
     border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#6338e8;
+    border-radius:10px;
+}
+
+*{
+    scrollbar-color:#6338e8 #f4f7fc;
+    scrollbar-width:thin;
 }
 
 /* Responsive */
@@ -579,7 +589,7 @@ body.teacher-dashboard-page table td{color:#353557;}
 body.teacher-dashboard-page table tr:hover{background:#faf9ff;}
 body.teacher-dashboard-page button{background:#6338e8; border-radius:9px; box-shadow:0 5px 12px rgba(99,56,232,.16);}
 body.teacher-dashboard-page button:hover{background:#5229cf;}
-body.teacher-dashboard-page ::-webkit-scrollbar-thumb{background:#b5a4f5;}
+body.teacher-dashboard-page ::-webkit-scrollbar-thumb{background:#6338e8;}
 
 @media(max-width:1100px){
     body.teacher-dashboard-page .cards{grid-template-columns:repeat(2,minmax(0,1fr));}

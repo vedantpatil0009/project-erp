@@ -1,5 +1,5 @@
 // ===================================
-// EduSphere Parent Dashboard
+// Educon Parent Dashboard
 // script.js
 // ===================================
 
@@ -41,7 +41,7 @@ menuItems.forEach(item => {
 
 window.onload = function(){
 
-    console.log("Welcome to EduSphere Parent Dashboard");
+    console.log("Welcome to Educon Parent Dashboard");
 
 };
 

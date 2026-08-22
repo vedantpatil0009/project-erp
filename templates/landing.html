@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSphere ERP</title>
+    <title>Educon</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css')}}">
@@ -38,7 +38,12 @@
 </div>
 
 <div id="menu">
-<i class="fa-solid fa-bars"></i>
+<i class="fa-solid fa-bars" aria-hidden="true"></i>
+</div>
+
+<div id="mobile-menu-panel" aria-hidden="true">
+    <a href="/login" class="login-btn">Login</a>
+    <a href="/register" class="register-btn">Register</a>
 </div>
 
 </nav>
@@ -56,7 +61,7 @@
 <p>
 An all-in-one ERP platform for Students,
 Teachers and Administrators.
-Attendance, Fees, Results, Timetable,
+Attendance, Results, Timetable,
 Assignments and much more.
 </p>
 
@@ -69,7 +74,7 @@ Assignments and much more.
         <div class="slides">
 
             <div class="slide active">
-                <div class="icon">🎓</div>
+                <div class="icon">ðŸŽ“</div>
                 <h2>Student Management</h2>
                 <p>Store and manage complete student records with ease.</p>
             </div>
@@ -78,12 +83,6 @@ Assignments and much more.
                 <div class="icon">📅</div>
                 <h2>Attendance Tracking</h2>
                 <p>Take attendance digitally and generate reports instantly.</p>
-            </div>
-
-            <div class="slide">
-                <div class="icon">💳</div>
-                <h2>Fee Management</h2>
-                <p>Track payments, pending fees and download receipts.</p>
             </div>
 
             <div class="slide">
@@ -96,7 +95,6 @@ Assignments and much more.
 
         <div class="slider-dots">
             <span class="dot active"></span>
-            <span class="dot"></span>
             <span class="dot"></span>
             <span class="dot"></span>
         </div>
@@ -133,12 +131,6 @@ Assignments and much more.
 </div>
 
 <div class="card">
-<i class="fa-solid fa-wallet"></i>
-<h3>Fees</h3>
-<p>Easy fee management system.</p>
-</div>
-
-<div class="card">
 <i class="fa-solid fa-book"></i>
 <h3>Library</h3>
 <p>Issue and return books online.</p>
@@ -164,11 +156,11 @@ Assignments and much more.
 
 <section id="about">
 
-<h2>About EduSphere ERP</h2>
+<h2>About Educon</h2>
 
 <p>
 
-EduSphere ERP is a modern school management
+Educon is a modern school management
 system designed to simplify administration,
 improve communication and enhance learning
 through one powerful platform.
@@ -229,7 +221,7 @@ through one powerful platform.
 
 <p>
 
-    © 2026 EduSphere ERP | Designed by Vedant
+    Â© 2026 Educon | Team HTML Heros
 
 </p>
 
@@ -239,3 +231,4 @@ through one powerful platform.
 
 </body>
 </html>
+

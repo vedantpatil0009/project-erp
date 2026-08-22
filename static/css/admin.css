@@ -255,9 +255,19 @@ footer{
     width:8px;
 }
 
-::-webkit-scrollbar-thumb{
-    background:#b91c1c;
+::-webkit-scrollbar-track{
+    background:#f4f7fc;
     border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#6338e8;
+    border-radius:10px;
+}
+
+*{
+    scrollbar-color:#6338e8 #f4f7fc;
+    scrollbar-width:thin;
 }
 
 /* Responsive */
@@ -392,6 +402,12 @@ body.admin-dashboard-page .admin-profile-form .admin-profile-actions{grid-column
     body.admin-dashboard-page table th,
     body.admin-dashboard-page table td{padding:7px 3px;font-size:10px}
     body.admin-dashboard-page .topbar h2{font-size:20px}
+}
+
+/* Let the page grow naturally; tables retain their dedicated mobile
+   horizontal scroller below. */
+@media(max-width:768px){
+    body.admin-dashboard-page .main{overflow:visible}
 }
 
 /* Match the Student/Teacher/Parent icon-sidebar responsive pattern. */

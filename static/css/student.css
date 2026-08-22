@@ -264,9 +264,19 @@ footer{
     width:8px;
 }
 
-::-webkit-scrollbar-thumb{
-    background:#2563eb;
+::-webkit-scrollbar-track{
+    background:#f4f7fc;
     border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#6338e8;
+    border-radius:10px;
+}
+
+*{
+    scrollbar-color:#6338e8 #f4f7fc;
+    scrollbar-width:thin;
 }
 
 /* Responsive */
@@ -538,6 +548,15 @@ body{
 button,.secondary-button{box-shadow:0 3px 8px rgba(37,99,235,.14)}
 @media(max-width:650px){.main{padding:22px 16px 32px}.topbar h1{font-size:25px}.topbar-actions{align-items:stretch;gap:10px}.notification{flex:0 0 48px;width:48px;height:48px}.search{height:48px}.quick-link-grid{grid-template-columns:repeat(2,1fr)}.schedule-item,.assignment-item{grid-template-columns:1fr;gap:5px;padding:13px 0}.detail-grid{grid-template-columns:1fr}.box{padding:18px}}
 @media(max-width:650px){.student-profile-page .profile-actions{flex-direction:column;gap:12px}.student-profile-page .secondary-button{width:100%;margin-right:0;text-align:center}}
+
+/* Dashboard cards should grow with their content instead of creating an
+   unnecessary internal scrollbar. */
+.main>.schedule-box,
+.main>.assignments-box{height:auto;min-height:320px;overflow:visible!important}
+@media(max-width:900px){
+    .main>.schedule-box,
+    .main>.assignments-box{min-height:0}
+}
 
 /* Attendance page-specific dashboard styling */
 .student-section-attendance .main{max-width:1280px}

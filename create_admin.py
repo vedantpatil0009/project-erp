@@ -1,4 +1,4 @@
-"""One-time interactive setup for the first EduSphere Admin account."""
+"""One-time interactive setup for the first Educon Admin account."""
 
 from getpass import getpass
 

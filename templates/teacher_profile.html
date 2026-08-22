@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Profile | EduSphere ERP</title>
+    <title>Teacher Profile | Educon</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 <body class="teacher-dashboard-page teacher-profile-page theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
-<div class="sidebar"><div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Teacher Portal</small></div><ul>
+<div class="sidebar"><div class="logo"><h2>Educon</h2><small>Teacher Portal</small></div><ul>
 {% for endpoint, label, icon in nav_items if endpoint != 'teacher_profile' %}<li class="{% if endpoint == active_endpoint %}active{% endif %}" onclick="window.location.href='{{ url_for(endpoint) }}'"><i class="fa-solid {{ icon }}"></i><span>{{ label }}</span></li>{% endfor %}
 <li class="sidebar-profile active" onclick="window.location.href='{{ url_for('teacher_profile') }}'"><i class="fa-solid fa-circle-user"></i><div class="sidebar-profile-details"><strong>{{ current_user.full_name }}</strong><small>{{ current_user.employee_id or 'Employee ID unavailable' }}</small></div></li>
 <li onclick="window.location.href='{{ url_for('logout') }}'"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></li>

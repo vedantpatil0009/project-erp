@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ section_title }} | EduSphere ERP</title>
+    <title>{{ section_title }} | Educon</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palette.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 </head>
 <body class="student-section-{{ active_page }} theme-{{ current_user.theme or 'light' }} accent-{{ current_user.accent_color or 'purple' }}">
 <div class="sidebar">
-    <div class="logo"><h2>EduSphere <span>ERP</span></h2><small>Student Portal</small></div>
+    <div class="logo"><h2>Educon</h2><small>Student Portal</small></div>
     <ul>
         <li class="{% if active_page == 'dashboard' %}active{% endif %}" onclick="window.location.href='{{ url_for('student') }}'"><i class="fa-solid fa-house"></i><span>Dashboard</span></li>
         <li class="{% if active_page == 'library' %}active{% endif %}" onclick="window.location.href='{{ url_for('student_library') }}'"><i class="fa-solid fa-book-open"></i><span>My Courses</span></li>

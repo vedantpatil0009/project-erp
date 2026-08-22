@@ -8,7 +8,7 @@
     toggle.setAttribute("aria-label", "Toggle sidebar");
     sidebar.appendChild(toggle);
 
-    const storageKey = "edusphereSidebarCollapsed";
+    const storageKey = "educonSidebarCollapsed";
     const isSmallScreen = () => window.matchMedia("(max-width: 900px)").matches;
 
     const readCollapsedPreference = () => {
